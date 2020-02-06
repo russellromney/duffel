@@ -1,5 +1,5 @@
 # red-pandas
-Lightweight Python dataframes without bloat or typecasting, using standard library. Great for Lambdas
+Lightweight Python data frames without bloat or typecasting, using only the standard library. Great for Lambdas
 
 ## Project inspiration
 
@@ -15,7 +15,9 @@ It is to solve these problems that I want to build red-pandas: a smaller, simple
 
 ## Notes
 
-dflite
+Some inspiration on organization, structure, and some copypasta from https://github.com/paleolimbot/dflite. red-pandas borrows much from @paleolimbot 's implementation of loc and iloc.
+
+Uses the `black` code style. https://black.readthedocs.io/en/stable/the_black_code_style.html
 
 ## Project goals
 

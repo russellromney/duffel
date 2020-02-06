@@ -23,7 +23,7 @@ def _asnumeric(obj):
         return obj
 
 
-def read_csv(reader, header=True, skiprows=0, numeric=True):
+def read_csv(reader, header=True, skiprows=0, numeric=True, columns=None, index=None):
     """
     Reads a file in as a DataFrame.
 
@@ -34,25 +34,25 @@ def read_csv(reader, header=True, skiprows=0, numeric=True):
     :return: A DataFrame with the resulting data.
     """
     fname = None
-    if "readline" not in dir(reader):
+    if type(reader=='str'):
         # is a filename
         if not isinstance(reader, str):
             raise ValueError("Reader parameter is not an open file or a filename")
         fname = reader
-        reader = open(fname, "r")
+        freader = open(fname, "r")
 
-    csvreader = csv.reader(reader)
+    csvreader = csv.reader(freader)
     records = []
-    columns = None
+    detected_columns = None
     for line in csvreader:
         if skiprows > 0:
             skiprows -= 1
             continue
-        if not records and not columns:
+        if not records and not detected_columns:
             # look for data
             if any([bool(c) for c in line]):
                 if header:
-                    columns = line
+                    detected_columns = line
                 else:
                     if numeric:
                         records.append([_asnumeric(c) for c in line])
@@ -68,6 +68,8 @@ def read_csv(reader, header=True, skiprows=0, numeric=True):
             else:
                 records.append(line)
     if fname:
-        reader.close()
+        freader.close()
+    if columns is None:
+        columns = detected_columns
 
-    return DataFrame(records) if columns is None else DataFrame(records, columns=columns)
+    return DataFrame(records,columns=columns,index=index)

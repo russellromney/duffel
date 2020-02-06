@@ -1,4 +1,4 @@
-
+from typing import Iterable
 import math
 
 NA = math.nan
@@ -15,9 +15,9 @@ def is_nan(x):
 
 
 def ndim(x):
-    if hasattr(x,'__len__'):
+    if isinstance(x,Iterable):
         if len(x)>0:
-            if hasattr(x[0],'__len__'):
+            if isinstance(x[0],Iterable):
                 return 2
             return 1
         return 1
