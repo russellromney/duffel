@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Mapping
 import math
 
 NA = math.nan
@@ -15,9 +15,17 @@ def is_nan(x):
 
 
 def ndim(x):
-    if isinstance(x,Iterable):
+    if isinstance(x,str):
+        return 0
+    elif isinstance(x,Mapping):
+        return 0
+    elif isinstance(x,Iterable):
         if len(x)>0:
-            if isinstance(x[0],Iterable):
+            if isinstance(x[0],str):
+                return 1
+            elif isinstance(x[0],Mapping):
+                return 1
+            elif isinstance(x[0],Iterable):
                 return 2
             return 1
         return 1

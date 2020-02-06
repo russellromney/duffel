@@ -10,7 +10,9 @@ from .loc import _Loc, _ILoc
 
 class DataFrame:
     def __init__(self, values, columns=None, index=None):
-        self.columns = columns
+        if columns is not None:
+            self.columns = tuple(list(columns)) # throws error if columns not iterator
+        self.empty = False
 
         # ingest values (all values will be iterable)
         assert isinstance(values, Iterable), "DF values must be an iterable"
@@ -53,14 +55,15 @@ class DataFrame:
             assert len(columns) == len(
                 self.values[0]
             ), f"DF columns length ({len(columns)}) must match length of values ({len(values[0])})"
-            self.columns = columns
+            self.columns = tuple(columns)
         else:
-            self.columns = [x for x in range(len(self.values))]
+            self.columns = tuple([x for x in range(len(self.values))])
 
         # create enumerated internal representation of index and columns
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self._nrow = len(self._rep_index)
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
+        self.shape = ( self._nrow, len(self.columns) )
 
         # loc and iloc
         self.iloc = _ILoc(self)
@@ -95,9 +98,10 @@ class DataFrame:
                     [y for x in values for y in list(x.keys())],
                     [],
                 )
-                self.columns = cols
+                self.columns = tuple(cols)
                 # create values
                 self.values = [[x.get(k, None) for k in cols] for x in values]
+                
 
     def _ingest_mapping(self, values, columns=None, index=None):
         """ingest maps of iterables """
@@ -105,7 +109,7 @@ class DataFrame:
             self.values = [[]]
             self.empty = True
         else:
-            self.columns = list(values.keys())
+            self.columns = tuple(values.keys())
             # put scalar objects in single-len lists
             for col in values:
                 if isinstance(values[col], Iterable):
@@ -126,60 +130,66 @@ class DataFrame:
 
     def __getitem__(self, index):
         """2D indexing on the data with slices and integers"""
-
-        # return column(s)
-        if (
-            isinstance(index, str)
-            or (
-                isinstance(index, Iterable)
-                and sum([isinstance(x, str) for x in index]) == len(index)
-            )
-            and sum([x in self.columns for x in index]) == len(index)
-        ):
-            if isinstance(index, str):
-                # single column
-                return [row[self._rep_columns[index]] for row in self.values]
-            else:
-                # multiple columns
-                return [
-                    [row[self._rep_columns[col]] for col in index]
-                    for row in self.values
-                ]
-
-        # deal with single index or slice
-        if not hasattr(index, "__len__"):
-            assert isinstance(index, int) or isinstance(index, slice)
-            return self.values[index]
-
-        len_ = len(index)
-
-        # multiple indexes - return the second index for all the first index
-        if (
-            len_ == 2
-            and sum(
-                [
-                    isinstance(x, int)
-                    or isinstance(x, slice)
-                    or isinstance(x, list)
-                    or isinstance(x, tuple)
-                    for x in index
-                ]
-            )
-            == 2
-        ):
-            if isinstance(index[0], int):
-                return self.values[index[0]][index[1]]
-            return [x[index[1]] for x in self.values[index[0]]]
-
-        # deal with boolean lists including 1s and 0s
+        # grab _Col by column name
+        if ndim(index)==0:
+            return self._col(index)
+        elif isinstance(index,slice) or isinstance(index,Iterable):
+            return self.loc[:,index]
         else:
-            assert len_ == len(
-                self.values
-            ), "Boolean selection iterable must be same length as data"
-            assert sum(
-                [isinstance(x, bool) or x == 0 or x == 1 for x in index]
-            ), "Boolean selection iterable must only contain bool values"
-            return [x for truth, x in zip(index, self.values) if truth]
+            raise ValueError('Not sure how to pull that column')
+        # # return column(s)
+        # if (
+        #     isinstance(index, str)
+        #     or (
+        #         isinstance(index, Iterable)
+        #         and sum([isinstance(x, str) for x in index]) == len(index)
+        #     )
+        #     and sum([x in self.columns for x in index]) == len(index)
+        # ):
+        #     if isinstance(index, str):
+        #         # single column
+        #         return [row[self._rep_columns[index]] for row in self.values]
+        #     else:
+        #         # multiple columns
+        #         return [
+        #             [row[self._rep_columns[col]] for col in index]
+        #             for row in self.values
+        #         ]
+
+        # # deal with single index or slice
+        # if not hasattr(index, "__len__"):
+        #     assert isinstance(index, int) or isinstance(index, slice)
+        #     return self.values[index]
+
+        # len_ = len(index)
+
+        # # multiple indexes - return the second index for all the first index
+        # if (
+        #     len_ == 2
+        #     and sum(
+        #         [
+        #             isinstance(x, int)
+        #             or isinstance(x, slice)
+        #             or isinstance(x, list)
+        #             or isinstance(x, tuple)
+        #             for x in index
+        #         ]
+        #     )
+        #     == 2
+        # ):
+        #     if isinstance(index[0], int):
+        #         return self.values[index[0]][index[1]]
+        #     return [x[index[1]] for x in self.values[index[0]]]
+
+        # # deal with boolean lists including 1s and 0s
+        # else:
+        #     assert len_ == len(
+        #         self.values
+        #     ), "Boolean selection iterable must be same length as data"
+        #     assert sum(
+        #         [isinstance(x, bool) or x == 0 or x == 1 for x in index]
+        #     ), "Boolean selection iterable must only contain bool values"
+        #     return [x for truth, x in zip(index, self.values) if truth]
 
     def _row(self, i, columns=None):
         if i >= self._nrow:
@@ -200,7 +210,11 @@ class DataFrame:
                 [
                     val
                     for val in [
-                        x for ix, x in zip(self.index, self.values) if ix in rows
+                        x
+                        for ix, x in zip(
+                            self.index, [row[self._rep_columns[column]] for row in self.values]
+                        )
+                        if ix in rows
                     ]
                 ],
                 name=column,
@@ -269,12 +283,14 @@ class DataFrame:
                 "Must subset rows with slice, index value, or iterable of index values"
             )
 
+        ###
         # at this point:
         # rows is either a valid row index value or a list of valid index values
         # columns is either a valid column name or a list of valid column names
         #
         # this means we can freely use self._rep_columns and self._rep_index
         # to call integer index locations of each
+        ###
 
         ### return subset
         # single row and col => return single value
@@ -305,6 +321,10 @@ class DataFrame:
                 ],
                 columns=columns,
                 index=rows,
+            )
+        else:
+            raise ValueError(
+                f"Not sure how to .loc index for rows {rows} and cols {columns}"
             )
 
     def _subset_iloc(self, rows, columns=None):
@@ -372,15 +392,25 @@ class DataFrame:
     def __repr__(self):
         strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in self[:, self._rep_columns[col]]]
+            [str(col), "----"] + [str(val) for val in self.loc[:, col] ]
             for col in self.columns
         ]
-        nchars = [max(len(val) for val in col) + 2 for col in strcols]
+        nchars = [max(len(val) for val in col) + 1 for col in strcols]
 
         rows = []
         i = 0
         for row in zip(*strcols):
-            if i > 15:
+            if i > 10:
+                rows.append(
+                    "".join(
+                        '...' + " " * (nchars[j] - len('...')) for j in range(len(row))
+                    )
+                )
+                rows.append(
+                    " ".join(
+                        ['red_pandas.DataFrame', str(self.shape) ]
+                    )
+                )
                 break
             row = list(row)
             rows.append(
@@ -404,3 +434,4 @@ class DataFrame:
         # 2D - must match size unless each row has 1 thing
 
         # error
+

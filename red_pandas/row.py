@@ -23,6 +23,31 @@ class _Row(object):
     #     vals = "".join(["<td>%s</td>" % self[key] for key in self._keys])
     #     return "<table><tr>%s</tr><tr>%s</tr></table>" % (title, vals)
 
+    def __repr__(self):
+        strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
+        strcols = [strcols] + [
+            [str(col), "----"] + [str(val) for val in self.loc[:, col] ]
+            for col in self.columns
+        ]
+        nchars = [max(len(val) for val in col) + 1 for col in strcols]
+
+        rows = []
+        for row in zip(*strcols):
+            row = list(row)
+            rows.append(
+                "".join(
+                    row[j] + " " * (nchars[j] - len(row[j])) for j in range(len(row))
+                )
+            )
+        rows.append(
+            " ".join(
+                ['red_pandas._Row', str(self.shape) ]
+            )
+        )
+
+        return "\n" + "\n".join(rows) + "\n"
+        
+
     # def keys(self):
     #     return self._keys
 
