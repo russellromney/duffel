@@ -15,7 +15,7 @@ It is to solve these problems that I want to build red-pandas: a smaller, simple
 
 ## Notes
 
-Some inspiration on organization, structure, and some copypasta from https://github.com/paleolimbot/dflite. red-pandas borrows much from @paleolimbot 's implementation of loc and iloc.
+Some inspiration on organization, structure, and some copypasta from https://github.com/paleolimbot/dflite. red-pandas borrows much from @paleolimbot 's implementation of `loc`, `iloc`, and `__repr__`
 
 Uses the `black` code style. https://black.readthedocs.io/en/stable/the_black_code_style.html
 

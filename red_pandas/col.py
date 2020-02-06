@@ -1,12 +1,34 @@
+from typing import Iterable, Mapping
+
 from .loc import _Loc, _ILoc
+from .na import ndim
 
 
-class _Col:
-    def __init__(self, data, name=None, index=None):
-        self.values = data
-        self.index = index
+class _Col(object):
+    def __init__(self, values, name=None, index=None):
+        # data shape
+        self.ndim = ndim(values)
+        assert (
+            self.ndim == 1
+        ), "Col values must be 1-dimensional; values have {self.ndim} dimensions"
+
+        self.values = values
         self.name = name
-        self.columns = [name]
+
+        if self.name is None:
+            self.name = 0
+        self.columns = [self.name]
+
+        # create index
+        if index is not None:
+            assert isinstance(index, Iterable), "Col index must be an iterable"
+            assert len(index) == len(set(index)), "Col index values must be unique"
+            assert len(index) == len(
+                values
+            ), f"Col index length ({len(index)}) must match number of rows ({len(values)})"
+            self.index = index
+        else:
+            self.index = [x for x in range(len(self.values))]
 
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self._nrow = len(self._rep_index)
@@ -25,10 +47,10 @@ class _Col:
         pass
 
     def head(self, n=6):
-        pass
+        return self._subset_loc(slice(0, n, None))
 
     def tail(self, n=6):
-        pass
+        return self._subset_loc(slice(0, n, None))
 
     def _subset_loc(self, item):
         pass
@@ -69,9 +91,9 @@ class _Col:
         return html
 
     def __repr__(self):
-        strcols = [" ", " --"] + [(" " + str(i)) for i in range(self._nrow)]
+        strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in self[:]] for col in self.columns
+            [str(col), "----"] + [str(val) for val in self.values] for col in self.columns
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
 

@@ -1,9 +1,11 @@
-class _Row(dict):
-    def __init__(self, columns, vals):
-        super().__init__(zip(columns, vals))
-        self._keys = tuple(columns)
+class _Row(object):
+    def __init__(self, values, columns=None, index=None):
+        self.values = values
+        self.columns = columns
+        self.index = index
 
-    def __getitem__(self, item):
+    def __getitem__(self, column):
+        return 
         if item in self:
             return super().__getitem__(item)
         else:

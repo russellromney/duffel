@@ -1,9 +1,10 @@
 from typing import Iterable, Mapping
 from functools import reduce
-import collections
+from collections import Counter
 
 from .na import ndim, NA
 from .row import _Row
+from .col import _Col
 from .loc import _Loc, _ILoc
 
 
@@ -11,84 +12,44 @@ class DataFrame:
     def __init__(self, values, columns=None, index=None):
         self.columns = columns
 
-        # ingest iterable
-        if isinstance(values, Iterable) and not isinstance(values, Mapping):
-            # blank - make it 2d
-            if not len(values):
-                self.values = [[]]
-                self.empty = True
+        # ingest values (all values will be iterable)
+        assert isinstance(values, Iterable), "DF values must be an iterable"
+
+        if isinstance(values, Mapping):
+            # dict of dicts
+            if sum([isinstance(x, Mapping) for x in values.values()]) == len(values):
+                # extract index and turn into list of dicts
+                self.index = list(values.keys())
+                values = list(values.values())
+                self._ingest_iterable(values, columns=columns, index=index)
             else:
-                # put values into memory - iterator fix - this is inefficient, sure
-                values = list(values)
-
-                # iterable of iterables
-                if isinstance(values[0], Iterable) and not isinstance(
-                    values[0], Mapping
-                ):
-                    maxlen = max([len(x) for x in values])
-                    self.values = [
-                        [y for y in x] + [None] * (maxlen - len(x)) for x in values
-                    ]
-
-                # iterable of dicts
-                elif isinstance(values[0], Mapping):
-                    # keep the columns in order of first encounter
-                    cols = reduce(
-                        lambda l, x: l.append(x) or l if x not in l else l,
-                        [y for x in values for y in list(x.keys())],
-                        [],
-                    )
-                    self.columns = cols
-                    # create values
-                    self.values = [[x.get(k, None) for k in cols] for x in values]
-
-        # ingest dict of iterables
-        elif isinstance(values, Mapping):
-            if not len(values):
-                self.values = [[]]
-                self.empty = True
-            else:
-                self.columns = list(values.columns())
-
-                # put noniterables in single-len lists
-                for col in values:
-                    if isinstance(values[col], Iterable) and not isinstance(
-                        values[col], Mapping
-                    ):
-                        values[col] = list(values)
-                    else:
-                        values[col] = list([values[col]])
-
-                # expand out smaller columns with None
-                maxlen = max([len(values[col]) for col in values])
-                for col in values:
-                    values[col] = values[col] + [None] * (maxlen - len(values[col]))
-
-                # create values
-                self.values = [list(x) for x in zip(*values.items())]
+                # dict of iterables
+                self._ingest_mapping(values, columns=columns, index=index)
+        else:
+            # iterable of dicts or iterable of iterables
+            self._ingest_iterable(values, columns=columns, index=index)
 
         # create index
         if index is not None:
-            assert isinstance(index, list) or isinstance(
-                index, tuple
-            ), "DF index must be an iterable"
+            assert isinstance(index, Iterable), "DF index must be an iterable"
             assert len(index) == len(set(index)), "DF index values must be unique"
             assert len(index) == len(
                 values
             ), f"DF index length ({len(index)}) must match number of rows ({len(values)})"
             self.index = index
+        elif hasattr(self, "index") and self.index is not None:
+            # it was created by being a dict of dicts
+            pass
         else:
             self.index = [x for x in range(len(self.values))]
 
         # deal with columns
         if self.columns is not None:
             columns = self.columns
-            assert isinstance(columns, list) or isinstance(
-                columns, tuple
-            ), "DF columns must be an iterable"
+            assert isinstance(columns, Iterable), "DF columns must be an iterable"
             assert len(columns) == len(
                 set(columns)
-            ), f"DF columns values must be unique - duplicates are {[item for item, count in collections.Counter(columns).items() if count > 1]}"
+            ), f"DF columns values must be unique - duplicates are {[item for item, count in Counter(columns).items() if count > 1]}"
             assert len(columns) == len(
                 self.values[0]
             ), f"DF columns length ({len(columns)}) must match length of values ({len(values[0])})"
@@ -108,6 +69,57 @@ class DataFrame:
     #####################################################################################
     # internals
     #####################################################################################
+
+    def _ingest_iterable(self, values, columns=None, index=None):
+        """ingest values of type Iterable (non-Mapping)"""
+        # blank - make it 2d
+        if not len(values):
+            self.values = [[]]
+            self.empty = True
+        else:
+            # put values into memory - iterator fix - this is inefficient, sure
+            values = list(values)
+
+            # iterable of iterables
+            if isinstance(values[0], Iterable) and not isinstance(values[0], Mapping):
+                maxlen = max([len(x) for x in values])
+                self.values = [
+                    [y for y in x] + [None] * (maxlen - len(x)) for x in values
+                ]
+
+            # iterable of dicts
+            elif isinstance(values[0], Mapping):
+                # keep the columns in order of first encounter
+                cols = reduce(
+                    lambda l, x: l.append(x) or l if x not in l else l,
+                    [y for x in values for y in list(x.keys())],
+                    [],
+                )
+                self.columns = cols
+                # create values
+                self.values = [[x.get(k, None) for k in cols] for x in values]
+
+    def _ingest_mapping(self, values, columns=None, index=None):
+        """ingest maps of iterables """
+        if not len(values):
+            self.values = [[]]
+            self.empty = True
+        else:
+            self.columns = list(values.keys())
+            # put scalar objects in single-len lists
+            for col in values:
+                if isinstance(values[col], Iterable):
+                    values[col] = list(values[col])
+                else:
+                    values[col] = list([values[col]])
+
+            # expand out smaller columns with None
+            maxlen = max([len(values[col]) for col in values])
+            for col in values:
+                values[col] = values[col] + [None] * (maxlen - len(values[col]))
+
+            # create values
+            self.values = [list(x) for x in zip(*values.values())]
 
     # def __setitem__(self, index, value):
     #     self.values[index] = value
@@ -175,103 +187,140 @@ class DataFrame:
         if columns is None:
             columns = self.columns
         return _Row(
-            columns, [self[i, col] if col in self.columns else NA for col in columns]
+            [val for col,val in zip(self.columns,self.values[i]) if col in columns ],
+            index=i, 
+            columns=columns
         )
 
-    def _col(self, item, rows=None):
+    def _col(self, column, rows=None):
         if rows is None:
-            return self[:, item]
+            rows = self.index
         else:
-            return self[rows, item]
+            return _Col(
+                [val for val in [x for ix,x in zip(self.index,self.values) if ix in rows]],
+                name=column,
+                index = rows
+            )
+
+    def _invert_rep_index(self):
+        return {v: k for k, v in self._rep_index.items()}
+
+    def _invert_rep_columns(self):
+        return {v: k for k, v in self._rep_columns.items()}
 
     def _subset_loc(self, rows, columns=None):
-        # return a dataframe of the specified subset using the named index and columns
-        if isinstance(rows, slice):
-            return DataFrame(self[rows], columns=self.columns)
-
+        """
+        implement .loc indexing behavior
+        transform rows to index values, transform columns to column names, and return subset
+        """
+        ### columns (goal is end up with list of column strings)
+        # no column specified
         if columns is None:
             columns = self.columns
+        # one column specified
+        elif isinstance(columns, str):
+            self._rep_columns[columns]  # this will throw a keyerror if column not exist
+        elif isinstance(columns, int):
+            columns = self._invert_rep_index()[columns]  # returns "real" value
+            self._rep_columns[columns]  # this will throw a keyerror if column not exist
+        # slice of columns by number
         elif isinstance(columns, slice):
-            # slice of columns...need to turn into column names
-            if columns.start is None:
-                colstart = 0
-            elif columns.start not in self.columns:
-                raise KeyError("Column not found: %s" % columns.start)
-            else:
-                colstart = self._rep_columns[columns.start]
-
-            if columns.stop is None:
-                colstop = len(self.columns)
-            elif columns.stop not in self.columns:
-                raise KeyError("Column not found: %s" % columns.stop)
-            else:
-                colstop = self._rep_columns[columns.stop]
-
-            columns = self.columns[colstart : colstop : columns.step]
-
-        # if rows are a list, they need to be an array
-        if ndim(rows) == 1:
-            rows = [rows]
-
-        if ndim(columns) == 1:
-            # list of columns
-            if isinstance(rows, int):
-                # single row
-                return self._row(rows, columns)
-            elif isinstance(rows, slice) or ndim(rows) == 1:
-                # data frame subset
-                if all(col not in self.columns for col in columns):
-                    raise ValueError(
-                        "None of %s were found in columns" % ", ".join(columns)
-                    )
-
-                newdata = {}
-                for col in columns:
-                    newdata[col] = self[rows, col]
-                return DataFrame(newdata, columns=columns)
-            else:
-                raise ValueError(
-                    "Don't know how to subset with rows of type %s"
-                    % type(rows).__name__
-                )
-
-        elif columns in self.columns:
-            # single column
-            if isinstance(rows, int):
-                # single value
-                return self[rows, columns]
-            elif isinstance(rows, slice) or ndim(rows) == 1:
-                # subset of column
-                print(rows, columns)
-                return self[rows, columns]
-            else:
-                raise ValueError(
-                    "Don't know how to subset with rows of type %s"
-                    % type(rows).__name__
-                )
-
+            columns = self.columns[columns]
+        # list of column names
+        elif isinstance(columns, Iterable):
+            [
+                self._rep_columns[col] for col in columns
+            ]  # missing columns throw an error
+        # not the right type
         else:
             raise ValueError(
-                "Don't know how to subset with columns of type %s"
-                % type(columns).__name__
+                "Must subset columns with slice, str, int, or iterable of column names"
+            )
+
+        ### rows
+        if isinstance(rows, slice):
+            # get list of row index values based on the slicer
+            rows = self.index[rows]
+        # rows is a string or an int - leave it be but check validity
+        elif isinstance(rows, str) or isinstance(rows, int):
+            self._rep_index[rows]  # throws keyerror if index doesn't exist
+        # rows is a list of row index values
+        elif isinstance(rows, Iterable):            
+            # if list of booleans
+            if list(set([type(x) for x in rows])) == [bool]:
+                thislen = len(rows)
+                assert thislen == self._nrow, f"Boolean subsetter length ({thislen}) must match length of data ({self._nrow})"
+                rows = [i for truth,i in zip(rows,self.index) if truth]
+            
+            # list of row indexes
+            else:
+                [self._rep_index[i] for i in rows] # throws keyerror if any index value doesn't exist
+        else:
+            raise ValueError(
+                "Must subset rows with slice, index value, or iterable of index values"
+            )
+
+        # at this point:
+            # rows is either a valid row index value or a list of valid index values
+            # columns is either a valid column name or a list of valid column names
+            # 
+            # this means we can freely use self._rep_columns and self._rep_index 
+            # to call integer index locations of each
+
+        ### return subset
+        # single row and col => return single value
+        if ndim(rows)==0 and ndim(columns)==0:
+            return self.values[ self._rep_index[rows] ][ self._rep_index[columns] ]
+        
+        # single row, multiple columns => _Row
+        elif ndim(rows)==0 and ndim(columns)==1:
+            return self._row(rows,columns=columns)
+        
+        # multiple rows, one column => _Col
+        elif ndim(rows)==1 and ndim(columns)==0:
+            return self._col(columns,rows=rows)
+        
+        # multiple rows, multiple columns => DataFrame
+        elif ndim(rows)==1 and ndim(columns)==1:
+            return DataFrame(
+                [
+                    [
+                        val
+                        for include_col, val in zip(
+                            [x in columns for x in self._rep_columns],
+                            self.values[self._rep_index[row]],
+                        )
+                        if include_col
+                    ]
+                    for row in rows
+                ],
+                columns=columns,
+                index=rows
             )
 
     def _subset_iloc(self, rows, columns=None):
-        if columns is None:
-            return self._subset_loc(rows, self.columns)
-        elif isinstance(columns, int) or isinstance(columns, slice):
-            return self._subset_loc(rows, self.columns[columns])
-        elif ndim(columns) == 1:
-            # can be an array booleans or ints
-            columns = list(columns)
-            if type(columns[0]) in ("i", "b"):
-                return self._subset_loc(
-                    rows, [self.columns[self._rep_columns[c]] for c in columns]
-                )
-            else:
-                raise ValueError(
-                    f"Don't know how to subset with column array of type {type(columns[0])}"
-                )
+        """
+        implement .iloc indexing behavior
+        only goal is to transform rows to row index values and pass to .loc
+        """
+        # a slice or int indexer can operate directly on the list of indexes
+        if isinstance(rows, slice) or isinstance(rows, int):
+            rows = self.index[rows]
+
+        # if list of numbers, then check valid type and convert to index values
+        elif isinstance(rows, Iterable):
+            assert list(set([type(x) for x in rows])) == [
+                int
+            ], ".iloc rows must be integer or iterable of integers"
+            inverted = self._invert_rep_index()
+            rows = [inverted[i] for i in rows]
+
+        # bad type
+        else:
+            raise ValueError(f".iloc rows must be integer or iterable of integers")
+
+        # pass to .loc
+        return self._subset_loc(rows, columns=columns)
 
     def head(self, n=6):
         return self._subset_loc(slice(0, n, None), None)
@@ -312,7 +361,7 @@ class DataFrame:
         return html
 
     def __repr__(self):
-        strcols = [" ", " --"] + [(" " + str(i)) for i in range(self._nrow)]
+        strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
         strcols = [strcols] + [
             [str(col), "----"] + [str(val) for val in self[:, self._rep_columns[col]]]
             for col in self.columns
@@ -339,3 +388,10 @@ class DataFrame:
     def __iter__(self):
         return self.columns.__iter__()
 
+    def __eq__(self, comp):
+        pass
+        # 1D - test equality rowwise
+
+        # 2D - must match size unless each row has 1 thing
+
+        # error
