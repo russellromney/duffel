@@ -1,7 +1,4 @@
-
-
 class _Row(dict):
-
     def __init__(self, columns, vals):
         super().__init__(zip(columns, vals))
         self._keys = tuple(columns)
@@ -20,8 +17,7 @@ class _Row(dict):
             yield self[key]
 
     def _repr_html_(self):
-        title = "".join(["<td><strong>%s</strong></td>" %
-                         key for key in self._keys])
+        title = "".join(["<td><strong>%s</strong></td>" % key for key in self._keys])
         vals = "".join(["<td>%s</td>" % self[key] for key in self._keys])
         return "<table><tr>%s</tr><tr>%s</tr></table>" % (title, vals)
 

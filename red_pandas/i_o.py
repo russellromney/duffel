@@ -2,6 +2,7 @@ import csv
 from .na import NA
 from .df import DataFrame
 
+
 def _asnumeric(obj):
     try:
         return int(obj)
@@ -34,7 +35,7 @@ def read_csv(reader, header=True, skiprows=0, numeric=True, columns=None, index=
     :return: A DataFrame with the resulting data.
     """
     fname = None
-    if type(reader=='str'):
+    if type(reader == "str"):
         # is a filename
         if not isinstance(reader, str):
             raise ValueError("Reader parameter is not an open file or a filename")
@@ -72,4 +73,4 @@ def read_csv(reader, header=True, skiprows=0, numeric=True, columns=None, index=
     if columns is None:
         columns = detected_columns
 
-    return DataFrame(records,columns=columns,index=index)
+    return DataFrame(records, columns=columns, index=index)

@@ -6,6 +6,7 @@ class _Col:
         self.values = data
         self.index = index
         self.name = name
+        self.columns = [name]
 
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self._nrow = len(self._rep_index)
@@ -26,7 +27,8 @@ class _Col:
     def head(self, n=6):
         pass
 
-    def tail(self, n=6)
+    def tail(self, n=6):
+        pass
 
     def _subset_loc(self, item):
         pass
@@ -54,7 +56,7 @@ class _Col:
         Jupyter Notebook magic repr function.
         """
         head = "<tr><td></td>%s</tr>\n" % "".join(
-            ["<td><strong>%s</strong></td>" % c for c in [self.name]]
+            ["<td><strong>%s</strong></td>" % c for c in self.columns]
         )
         rows = [
             "<td><strong>%d</strong></td>" % i
@@ -69,8 +71,7 @@ class _Col:
     def __repr__(self):
         strcols = [" ", " --"] + [(" " + str(i)) for i in range(self._nrow)]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in self[:]]
-            for col in [self.name]
+            [str(col), "----"] + [str(val) for val in self[:]] for col in self.columns
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
 

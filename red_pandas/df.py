@@ -8,12 +8,7 @@ from .loc import _Loc, _ILoc
 
 
 class DataFrame:
-    def __init__(
-        self,
-        values,
-        columns=None,
-        index=None,
-    ):
+    def __init__(self, values, columns=None, index=None):
         self.columns = columns
 
         # ingest iterable
@@ -27,7 +22,9 @@ class DataFrame:
                 values = list(values)
 
                 # iterable of iterables
-                if isinstance(values[0], Iterable) and not isinstance(values[0], Mapping):
+                if isinstance(values[0], Iterable) and not isinstance(
+                    values[0], Mapping
+                ):
                     maxlen = max([len(x) for x in values])
                     self.values = [
                         [y for y in x] + [None] * (maxlen - len(x)) for x in values
@@ -119,14 +116,23 @@ class DataFrame:
         """2D indexing on the data with slices and integers"""
 
         # return column(s)
-        if isinstance(index,str) or (isinstance(index,Iterable) and sum([isinstance(x,str) for x in index])==len(index) ) and sum([x in self.columns for x in index])==len(index):
-            if isinstance(index,str):
+        if (
+            isinstance(index, str)
+            or (
+                isinstance(index, Iterable)
+                and sum([isinstance(x, str) for x in index]) == len(index)
+            )
+            and sum([x in self.columns for x in index]) == len(index)
+        ):
+            if isinstance(index, str):
                 # single column
-                return [ row[ self._rep_columns[index]] for row in self.values ]
+                return [row[self._rep_columns[index]] for row in self.values]
             else:
                 # multiple columns
-                return [ [row[self._rep_columns[col]] for col in index] for row in self.values ]
-
+                return [
+                    [row[self._rep_columns[col]] for col in index]
+                    for row in self.values
+                ]
 
         # deal with single index or slice
         if not hasattr(index, "__len__"):
@@ -169,21 +175,20 @@ class DataFrame:
         if columns is None:
             columns = self.columns
         return _Row(
-            columns,
-            [self[i,col] if col in self.columns else NA for col in columns],
+            columns, [self[i, col] if col in self.columns else NA for col in columns]
         )
 
     def _col(self, item, rows=None):
         if rows is None:
-            return self[:,item]
+            return self[:, item]
         else:
-            return self[rows,item]
+            return self[rows, item]
 
     def _subset_loc(self, rows, columns=None):
         # return a dataframe of the specified subset using the named index and columns
-        if isinstance(rows,slice):
-            return DataFrame( self[rows ], columns=self.columns)
-        
+        if isinstance(rows, slice):
+            return DataFrame(self[rows], columns=self.columns)
+
         if columns is None:
             columns = self.columns
         elif isinstance(columns, slice):
@@ -237,7 +242,7 @@ class DataFrame:
                 return self[rows, columns]
             elif isinstance(rows, slice) or ndim(rows) == 1:
                 # subset of column
-                print(rows,columns)
+                print(rows, columns)
                 return self[rows, columns]
             else:
                 raise ValueError(
@@ -260,7 +265,9 @@ class DataFrame:
             # can be an array booleans or ints
             columns = list(columns)
             if type(columns[0]) in ("i", "b"):
-                return self._subset_loc(rows, [self.columns[self._rep_columns[c]] for c in columns])
+                return self._subset_loc(
+                    rows, [self.columns[self._rep_columns[c]] for c in columns]
+                )
             else:
                 raise ValueError(
                     f"Don't know how to subset with column array of type {type(columns[0])}"
@@ -307,7 +314,7 @@ class DataFrame:
     def __repr__(self):
         strcols = [" ", " --"] + [(" " + str(i)) for i in range(self._nrow)]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in self[:,self._rep_columns[col]]]
+            [str(col), "----"] + [str(val) for val in self[:, self._rep_columns[col]]]
             for col in self.columns
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
@@ -331,5 +338,4 @@ class DataFrame:
 
     def __iter__(self):
         return self.columns.__iter__()
-
 
