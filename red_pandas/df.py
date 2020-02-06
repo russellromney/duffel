@@ -187,9 +187,9 @@ class DataFrame:
         if columns is None:
             columns = self.columns
         return _Row(
-            [val for col,val in zip(self.columns,self.values[i]) if col in columns ],
-            index=i, 
-            columns=columns
+            [val for col, val in zip(self.columns, self.values[i]) if col in columns],
+            index=i,
+            columns=columns,
         )
 
     def _col(self, column, rows=None):
@@ -197,9 +197,14 @@ class DataFrame:
             rows = self.index
         else:
             return _Col(
-                [val for val in [x for ix,x in zip(self.index,self.values) if ix in rows]],
+                [
+                    val
+                    for val in [
+                        x for ix, x in zip(self.index, self.values) if ix in rows
+                    ]
+                ],
                 name=column,
-                index = rows
+                index=rows,
             )
 
     def _invert_rep_index(self):
@@ -245,43 +250,47 @@ class DataFrame:
         elif isinstance(rows, str) or isinstance(rows, int):
             self._rep_index[rows]  # throws keyerror if index doesn't exist
         # rows is a list of row index values
-        elif isinstance(rows, Iterable):            
+        elif isinstance(rows, Iterable):
             # if list of booleans
             if list(set([type(x) for x in rows])) == [bool]:
                 thislen = len(rows)
-                assert thislen == self._nrow, f"Boolean subsetter length ({thislen}) must match length of data ({self._nrow})"
-                rows = [i for truth,i in zip(rows,self.index) if truth]
-            
+                assert (
+                    thislen == self._nrow
+                ), f"Boolean subsetter length ({thislen}) must match length of data ({self._nrow})"
+                rows = [i for truth, i in zip(rows, self.index) if truth]
+
             # list of row indexes
             else:
-                [self._rep_index[i] for i in rows] # throws keyerror if any index value doesn't exist
+                [
+                    self._rep_index[i] for i in rows
+                ]  # throws keyerror if any index value doesn't exist
         else:
             raise ValueError(
                 "Must subset rows with slice, index value, or iterable of index values"
             )
 
         # at this point:
-            # rows is either a valid row index value or a list of valid index values
-            # columns is either a valid column name or a list of valid column names
-            # 
-            # this means we can freely use self._rep_columns and self._rep_index 
-            # to call integer index locations of each
+        # rows is either a valid row index value or a list of valid index values
+        # columns is either a valid column name or a list of valid column names
+        #
+        # this means we can freely use self._rep_columns and self._rep_index
+        # to call integer index locations of each
 
         ### return subset
         # single row and col => return single value
-        if ndim(rows)==0 and ndim(columns)==0:
-            return self.values[ self._rep_index[rows] ][ self._rep_index[columns] ]
-        
+        if ndim(rows) == 0 and ndim(columns) == 0:
+            return self.values[self._rep_index[rows]][self._rep_index[columns]]
+
         # single row, multiple columns => _Row
-        elif ndim(rows)==0 and ndim(columns)==1:
-            return self._row(rows,columns=columns)
-        
+        elif ndim(rows) == 0 and ndim(columns) == 1:
+            return self._row(rows, columns=columns)
+
         # multiple rows, one column => _Col
-        elif ndim(rows)==1 and ndim(columns)==0:
-            return self._col(columns,rows=rows)
-        
+        elif ndim(rows) == 1 and ndim(columns) == 0:
+            return self._col(columns, rows=rows)
+
         # multiple rows, multiple columns => DataFrame
-        elif ndim(rows)==1 and ndim(columns)==1:
+        elif ndim(rows) == 1 and ndim(columns) == 1:
             return DataFrame(
                 [
                     [
@@ -295,7 +304,7 @@ class DataFrame:
                     for row in rows
                 ],
                 columns=columns,
-                index=rows
+                index=rows,
             )
 
     def _subset_iloc(self, rows, columns=None):

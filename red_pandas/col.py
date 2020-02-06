@@ -10,7 +10,7 @@ class _Col(object):
         self.ndim = ndim(values)
         assert (
             self.ndim == 1
-        ), "Col values must be 1-dimensional; values have {self.ndim} dimensions"
+        ), f"Col values must be 1-dimensional; values have {self.ndim} dimensions"
 
         self.values = values
         self.name = name
@@ -41,7 +41,7 @@ class _Col(object):
     #####################################################################################
 
     def __getitem__(self, index):
-        pass
+        
 
     def _row(self, i):
         pass
