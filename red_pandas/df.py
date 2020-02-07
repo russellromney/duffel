@@ -9,7 +9,7 @@ from .loc import _Loc, _ILoc
 
 
 class DataFrame:
-    def __init__(self, values, columns=None, index=None):
+    def __init__(self, values, columns=None, index=None, copy=True):
         if columns is not None:
             self.columns = tuple(list(columns)) # throws error if columns not iterator
         self.empty = False
@@ -295,7 +295,7 @@ class DataFrame:
         ### return subset
         # single row and col => return single value
         if ndim(rows) == 0 and ndim(columns) == 0:
-            return self.values[self._rep_index[rows]][self._rep_index[columns]]
+            return self.values[self._rep_index[rows]][self._rep_columns[columns]]
 
         # single row, multiple columns => _Row
         elif ndim(rows) == 0 and ndim(columns) == 1:

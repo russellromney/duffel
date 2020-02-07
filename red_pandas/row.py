@@ -1,5 +1,5 @@
 class _Row(object):
-    def __init__(self, values, columns=None, index=None):
+    def __init__(self, values, columns=None, index=None,):
         self.values = values
         self.columns = columns
         self.index = index
@@ -8,8 +8,8 @@ class _Row(object):
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
 
 
-    # def __getitem__(self, column):
-    #     return 
+    def __getitem__(self, column):
+        return self.values[self._rep_columns[column]]
     #     if item in self:
     #         return super().__getitem__(item)
     #     else:
