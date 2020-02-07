@@ -406,11 +406,6 @@ class DataFrame:
                         '...' + " " * (nchars[j] - len('...')) for j in range(len(row))
                     )
                 )
-                rows.append(
-                    " ".join(
-                        ['red_pandas.DataFrame', str(self.shape) ]
-                    )
-                )
                 break
             row = list(row)
             rows.append(
@@ -419,6 +414,12 @@ class DataFrame:
                 )
             )
             i += 1
+        rows.append(
+            " ".join(
+                ['red_pandas.DataFrame', str(self.shape) ]
+            )
+        )
+
         return "\n" + "\n".join(rows) + "\n"
 
     def __len__(self):
