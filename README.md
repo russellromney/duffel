@@ -1,5 +1,45 @@
 # red-pandas
-Lightweight Python data frames without bloat or typecasting, using only the standard library. Great for Lambdas
+Lightweight Python data frames without bloat or typecasting, using only the standard library.
+
+
+```
+git clone https://github.com/russellromney/red_pandas
+cd red_pandas
+
+
+import red_pandas as pd
+
+df = pd.read_csv('red_pandas/MOCK_DATA.csv')
+
+df.shape
+>>> (1000, 6)
+
+df.head()
+>>>
+     id    first_name  last_name  email                      gender  ip_address      
+ --  ----  ----        ----       ----                       ----    ----            
+ 0   1     Brinn       Herity     bherity0@hugedomains.com   Female  53.183.199.223  
+ 1   2     Wylma       Lavell     wlavell1@stumbleupon.com   Female  206.172.62.206  
+ 2   3     Devin       Dearan     ddearan2@businessweek.com  Female  98.251.59.108   
+ 3   4     Blinni      McClary    bmcclary3@pbs.org          Female  132.90.160.192  
+ 4   5     Byram       Weddup     bweddup4@csmonitor.com     Male    175.16.72.226   
+ 5   6     Jolynn      Glanvill   jglanvill5@mail.ru         Female  205.230.55.59
+
+df.loc[576]
+>>>
+      id    first_name  last_name  email                      gender  ip_address      
+ --   ----  ----        ----       ----                       ----    ----            
+ 576  577   Cesaro      Ohrtmann   cohrtmanng0@tuttocitta.it  Male    252.141.154.52  
+red_pandas._Row (1, 6)
+
+df.loc[5:7, ['first_name','gender']]
+>>>
+     first_name  gender  
+ --  ----        ----    
+ 5   Jolynn      Female  
+ 6   Moina       Female
+```
+
 
 ## Project inspiration
 
@@ -15,7 +55,7 @@ It is to solve these problems that I want to build red-pandas: a smaller, simple
 
 ## Notes
 
-Some inspiration on organization, structure, and some copypasta from https://github.com/paleolimbot/dflite. red-pandas borrows much from @paleolimbot 's implementation of `loc`, `iloc`, and `__repr__`
+Some inspiration on organization, structure, and some copypasta from https://github.com/paleolimbot/dflite. red-pandas borrows much from @paleolimbot implementation of `loc`, `iloc`, and `__repr__`
 
 Uses the `black` code style. https://black.readthedocs.io/en/stable/the_black_code_style.html
 
