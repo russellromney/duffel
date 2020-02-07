@@ -40,6 +40,7 @@ class _Col(object):
         self._nrow = len(self._rep_index)
         self.loc = _Loc(self)
         self.iloc = _ILoc(self)
+        self.shape = ( self._nrow, 1 )
 
     #####################################################################################
     # internals
@@ -192,6 +193,11 @@ class _Col(object):
                 )
             )
             i += 1
+        rows.append(
+            " ".join(
+                ['red_pandas._Col', str(self.shape) ]
+            )
+        )
         return "\n" + "\n".join(rows) + "\n"
 
     def __len__(self):
