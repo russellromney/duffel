@@ -195,7 +195,7 @@ class _Col(object):
             i += 1
         rows.append(
             " ".join(
-                ['red_pandas._Col', str(self.shape) ]
+                ['duffel._Col', str(self.shape) ]
             )
         )
         return "\n" + "\n".join(rows) + "\n"

@@ -11,7 +11,7 @@ from .loc import _Loc, _ILoc
 class DataFrame:
     def __init__(self, values, columns=None, index=None, copy=True):
         if columns is not None:
-            self.columns = tuple(list(columns)) # throws error if columns not iterator
+            self.columns = tuple(list(columns))  # throws error if columns not iterator
         self.empty = False
 
         # ingest values (all values will be iterable)
@@ -63,7 +63,7 @@ class DataFrame:
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self._nrow = len(self._rep_index)
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
-        self.shape = ( self._nrow, len(self.columns) )
+        self.shape = (self._nrow, len(self.columns))
 
         # loc and iloc
         self.iloc = _ILoc(self)
@@ -101,7 +101,6 @@ class DataFrame:
                 self.columns = tuple(cols)
                 # create values
                 self.values = [[x.get(k, None) for k in cols] for x in values]
-                
 
     def _ingest_mapping(self, values, columns=None, index=None):
         """ingest maps of iterables """
@@ -131,12 +130,12 @@ class DataFrame:
     def __getitem__(self, index):
         """2D indexing on the data with slices and integers"""
         # grab _Col by column name
-        if ndim(index)==0:
+        if ndim(index) == 0:
             return self._col(index)
-        elif isinstance(index,slice) or isinstance(index,Iterable):
-            return self.loc[:,index]
+        elif isinstance(index, slice) or isinstance(index, Iterable):
+            return self.loc[:, index]
         else:
-            raise ValueError('Not sure how to pull that column')
+            raise ValueError("Not sure how to pull that column")
         # # return column(s)
         # if (
         #     isinstance(index, str)
@@ -212,7 +211,8 @@ class DataFrame:
                     for val in [
                         x
                         for ix, x in zip(
-                            self.index, [row[self._rep_columns[column]] for row in self.values]
+                            self.index,
+                            [row[self._rep_columns[column]] for row in self.values],
                         )
                         if ix in rows
                     ]
@@ -351,6 +351,19 @@ class DataFrame:
         # pass to .loc
         return self._subset_loc(rows, columns=columns)
 
+    def sort_values(self, columns):
+        # can sort with:
+        # sorted(data, key=lambda x: (x[2], x[5]) ) sort ascending, ascending
+        # sorted(data, key=lambda x: (x[2], -x[5]) ) sorts ascending, descending
+        # maybe - how to include index:
+        # add index as last element & sort and recreate index from last element and drop
+        # sort dict of lists on some element and recreate index from keys (idk if this works)
+        pass
+
+    def sort_index(self, columns):
+        # easy - sort the list of self._rep_index and then recreate with list comprehension including range()
+        pass
+
     def head(self, n=6):
         return self._subset_loc(slice(0, n, None), None)
 
@@ -392,7 +405,7 @@ class DataFrame:
     def __repr__(self):
         strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in self.loc[:, col] ]
+            [str(col), "----"] + [str(val) for val in self.loc[:, col]]
             for col in self.columns
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
@@ -403,7 +416,7 @@ class DataFrame:
             if i > 10:
                 rows.append(
                     "".join(
-                        '...' + " " * (nchars[j] - len('...')) for j in range(len(row))
+                        "..." + " " * (nchars[j] - len("...")) for j in range(len(row))
                     )
                 )
                 break
@@ -414,11 +427,7 @@ class DataFrame:
                 )
             )
             i += 1
-        rows.append(
-            " ".join(
-                ['red_pandas.DataFrame', str(self.shape) ]
-            )
-        )
+        rows.append(" ".join(["duffel.DataFrame", str(self.shape)]))
 
         return "\n" + "\n".join(rows) + "\n"
 

@@ -1,5 +1,5 @@
 import random
-import red_pandas as rp
+import duffel as du
 
 test_columns = 'abcdefg'
 test_index = list(range(len(test_columns)))
@@ -32,7 +32,7 @@ ld = [
 
 ll = data
 
-df_dd = rp.DataFrame(dd)
-df_dl = rp.DataFrame(dl,index=test_index)
-df_ld = rp.DataFrame(ld,columns=test_columns)
-df_ll = rp.DataFrame(ll,columns=test_columns,index=test_index)
+df_dd = du.DataFrame(dd)
+df_dl = du.DataFrame(dl,index=test_index)
+df_ld = du.DataFrame(ld,columns=test_columns)
+df_ll = du.DataFrame(ll,columns=test_columns,index=test_index)

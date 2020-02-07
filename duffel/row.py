@@ -45,7 +45,7 @@ class _Row(object):
             )
         rows.append(
             " ".join(
-                ['red_pandas._Row', str(self.shape) ]
+                ['duffel._Row', str(self.shape) ]
             )
         )
 
