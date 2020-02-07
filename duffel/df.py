@@ -364,6 +364,96 @@ class DataFrame:
         # easy - sort the list of self._rep_index and then recreate with list comprehension including range()
         pass
 
+    def transpose(self):
+        pass
+
+    def T(self):
+        return self.transpose()
+
+    def max(self, column=None):
+        pass
+
+    def min(self, column=None):
+        pass
+
+    def median(self, column=None):
+        pass
+
+    def mode(self, column=None):
+        pass
+
+    def sum(self, column=None):
+        pass
+
+    def abs(self, column=None):
+        pass
+
+    def corr(self, columns=None):
+        pass
+
+    def cov(self, columns=None):
+        pass
+
+    def quantile(self):
+        pass
+
+    def round(self, n):
+        pass
+
+    def idxmax(self, column=None):
+        pass
+
+    def idxmin(self, column=None):
+        pass
+
+    def dropna(self, columns=None):
+        pass
+
+    def fillna(self, columns=None):
+        pass
+
+    def isna(self, columns=None):
+        pass
+
+    def notna(self, columns=None):
+        pass
+
+    def groupby(self, columns=None):
+        pass
+
+    def pivot_table(self, columns=None):
+        pass
+
+    def append(self, data):
+        pass
+
+    def merge(self, data, on=None, how=None):
+        pass
+
+    def drop(self, columns, axis=0):
+        pass
+
+    def drop_duplicates(self, columns=None):
+        pass
+
+    def isin(self, value):
+        pass
+
+    def reset_index(self, column):
+        pass
+
+    def sample(self, n, seed=None, columns=None):
+        pass
+
+    def to_csv(self, fname, index=False):
+        pass
+
+    def to_json(self):
+        pass
+
+    def to_sql(self, con):
+        pass
+
     def head(self, n=6):
         return self._subset_loc(slice(0, n, None), None)
 

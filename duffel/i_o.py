@@ -74,3 +74,10 @@ def read_csv(reader, header=True, skiprows=0, numeric=True, columns=None, index=
         columns = detected_columns
 
     return DataFrame(records, columns=columns, index=index)
+
+
+def read_json(reader):
+    pass
+
+def read_sql(q,con):
+    pass
