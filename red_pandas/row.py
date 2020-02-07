@@ -3,6 +3,10 @@ class _Row(object):
         self.values = values
         self.columns = columns
         self.index = index
+        self.shape = (1,len(self.columns))
+
+        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
+
 
     # def __getitem__(self, column):
     #     return 
@@ -24,12 +28,12 @@ class _Row(object):
     #     return "<table><tr>%s</tr><tr>%s</tr></table>" % (title, vals)
 
     def __repr__(self):
-        strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
+        strcols = [" ", " --"] + [(" " + str(self.index))]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in self.loc[:, col] ]
-            for col in self.columns
+            [str(col), "----"] + [str(val) for val in [ self.values[self._rep_columns[col]]] ]
+            for col in self.columns 
         ]
-        nchars = [max(len(val) for val in col) + 1 for col in strcols]
+        nchars = [max(len(val) for val in col) + 2 for col in strcols]
 
         rows = []
         for row in zip(*strcols):

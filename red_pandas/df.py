@@ -395,7 +395,7 @@ class DataFrame:
             [str(col), "----"] + [str(val) for val in self.loc[:, col] ]
             for col in self.columns
         ]
-        nchars = [max(len(val) for val in col) + 1 for col in strcols]
+        nchars = [max(len(val) for val in col) + 2 for col in strcols]
 
         rows = []
         i = 0
