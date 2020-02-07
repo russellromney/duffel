@@ -23,7 +23,8 @@ df.head()
  2   3     Devin       Dearan     ddearan2@businessweek.com  Female  98.251.59.108   
  3   4     Blinni      McClary    bmcclary3@pbs.org          Female  132.90.160.192  
  4   5     Byram       Weddup     bweddup4@csmonitor.com     Male    175.16.72.226   
- 5   6     Jolynn      Glanvill   jglanvill5@mail.ru         Female  205.230.55.59
+ 5   6     Jolynn      Glanvill   jglanvill5@mail.ru         Female  205.230.55.59   
+red_pandas.DataFrame (6, 6)
 
 df.loc[576]
 >>>
@@ -37,7 +38,8 @@ df.loc[5:7, ['first_name','gender']]
      first_name  gender  
  --  ----        ----    
  5   Jolynn      Female  
- 6   Moina       Female
+ 6   Moina       Female  
+red_pandas.DataFrame (2, 2)
 ```
 
 
