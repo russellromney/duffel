@@ -360,46 +360,53 @@ class DataFrame:
         # add index as last element & sort and recreate index from last element and drop
         # sort dict of lists on some element and recreate index from keys (idk if this works)
         # NOTE - any same values in sorted column are then sorted by index i.e. by first appearence a la Python norms
-        
+
         # method 1 append index value
-        temp = [x+[i] for x,i in zip(self.values,self.index)]
-        
-        if ndim(columns)==0:
-            temp = sorted(temp, key=lambda x: ( x[ self._rep_columns[columns] ] ))
+        temp = [x + [i] for x, i in zip(self.values, self.index)]
+
+        if ndim(columns) == 0:
+            temp = sorted(temp, key=lambda x: (x[self._rep_columns[columns]]))
         else:
-            temp = sorted(temp, key=lambda x: tuple([x[self._rep_columns[columns[i]]] for i in range(len(columns)) ]) )
+            temp = sorted(
+                temp,
+                key=lambda x: tuple(
+                    [x[self._rep_columns[columns[i]]] for i in range(len(columns))]
+                ),
+            )
         self.index = [x[-1] for x in temp]
         self.values = [x[:-1] for x in temp]
-        self._rep_index = dict(zip(range(self._nrow),self.index))
+        self._rep_index = dict(zip(range(self._nrow), self.index))
         return self
 
     def sort_index(self):
         # easy - just add index as an item, do sort_values, and re-map ._rep_index
-        self.values = [x+[i] for i,x in zip(self.index,self.values)]
-        new = ''.join([random.choice('1234567890abcdefghijklmnopqrstuvwxyz') for x in range(20)])
+        self.values = [x + [i] for i, x in zip(self.index, self.values)]
+        new = "".join(
+            [random.choice("1234567890abcdefghijklmnopqrstuvwxyz") for x in range(20)]
+        )
         self.columns = [*self.columns, new]
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
-        
+
         # sort the list of self._rep_index and then recreate with list comprehension including range()
         self = self.sort_values(new)
-        
+
         # finish up
         self.index = [x[-1] for x in self.values]
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self.columns = self.columns[:-1]
-        self._rep_columns = {k:v for k,v in self._rep_columns.items() if k!=new}
+        self._rep_columns = {k: v for k, v in self._rep_columns.items() if k != new}
         return self
-        
-    def set_index(self,column):
+
+    def set_index(self, column):
         assert column in self.columns, "DF set_index column ({column}) not in columns"
         colindex = self._rep_columns[column]
-        
+
         # create the index and edit the values by popping the values...is this too slow?
         self.index = [x.pop(colindex) for x in self.values]
-        
+
         # finish up
         self._rep_index = {k: v for v, k in enumerate(self.index)}
-        self.columns = tuple([x for x in self.columns if x!=column])
+        self.columns = tuple([x for x in self.columns if x != column])
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
         return self
 
@@ -534,7 +541,8 @@ class DataFrame:
     def __repr__(self):
         strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in [x[self._rep_columns[col]] for x in self.values] ]
+            [str(col), "----"]
+            + [str(val) for val in [x[self._rep_columns[col]] for x in self.values]]
             for col in self.columns
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
