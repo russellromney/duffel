@@ -24,7 +24,15 @@ def _asnumeric(obj):
         return obj
 
 
-def read_csv(reader, header=True, skiprows=0, numeric=True, columns=None, index=None, index_col=None):
+def read_csv(
+    reader,
+    header=True,
+    skiprows=0,
+    numeric=True,
+    columns=None,
+    index=None,
+    index_col=None,
+):
     """
     Reads a file in as a DataFrame.
 
@@ -75,8 +83,12 @@ def read_csv(reader, header=True, skiprows=0, numeric=True, columns=None, index=
 
     # deal with index col by popping values that don't belong
     if index_col is not None:
-        assert index is None, f"duffel.read_csv must specify either index_col OR index values, not both"
-        assert isinstance(index_col, int), f"DF index_col must be an interger; index col was ({index_col})"
+        assert (
+            index is None
+        ), f"duffel.read_csv must specify either index_col OR index values, not both"
+        assert isinstance(
+            index_col, int
+        ), f"DF index_col must be an interger; index col was ({index_col})"
         index = [x.pop(index_col) for x in records]
         if columns is not None:
             columns.pop(index_col)
@@ -87,5 +99,6 @@ def read_csv(reader, header=True, skiprows=0, numeric=True, columns=None, index=
 def read_json(reader):
     pass
 
-def read_sql(q,con):
+
+def read_sql(q, con):
     pass
