@@ -63,17 +63,65 @@ Uses the `black` code style. https://black.readthedocs.io/en/stable/the_black_co
 
 ## Project goals
 
-Build a dataframe solution that can be easily used in AWS Lambda functions for most non-analytical dataframe operations. 
+Build a dataframe solution that can be easily used in AWS Lambda functions for most non-massive-scale-analytical dataframe operations. 
 
 Implement a significant subset of the "minimally sufficient" Pandas API as laid out in https://medium.com/dunder-data/minimally-sufficient-pandas-a8e67f2a2428:
 
+Implemented uses are struckthrough.
+
 **Attributes**
-columns
+~~columns~~
 dtypes
-index
-shape
+~~index~~
+~~shape~~
 T
-values
+~~values~~
+
+**Subset Selection**
+~~head~~
+~~iloc~~
+~~loc~~
+~~tail~~
+
+**Missing Value Handling**
+dropna
+fillna
+interpolate
+isna
+notna
+
+**Grouping**
+expanding
+groupby
+pivot_table
+resample
+rolling
+
+**Joining Data**
+append
+merge
+
+**Other**
+asfreq
+astype
+copy
+drop
+drop_duplicates
+equals
+isin
+melt
+plot
+rename
+replace
+reset_index
+sample
+select_dtypes
+shift
+~~sort_index~~
+~~sort_values~~
+to_csv
+to_json
+to_sql
 
 **Aggregation Methods**
 all
@@ -110,59 +158,12 @@ quantile
 rank
 round
 
-**Subset Selection**
-head
-iloc
-loc
-tail
-
-**Missing Value Handling**
-dropna
-fillna
-interpolate
-isna
-notna
-
-**Grouping**
-
-expanding
-groupby
-pivot_table
-resample
-rolling
-
-**Joining Data**
-append
-merge
-
-**Other**
-asfreq
-astype
-copy
-drop
-drop_duplicates
-equals
-isin
-melt
-plot
-rename
-replace
-reset_index
-sample
-select_dtypes
-shift
-sort_index
-sort_values
-to_csv
-to_json
-to_sql
-
 **Functions**
 pd.concat
 pd.crosstab
 pd.cut
 pd.qcut
-pd.read_csv
+~~pd.read_csv~~
 pd.read_json
 pd.read_sql
 pd.to_datetime
