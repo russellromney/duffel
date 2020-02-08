@@ -20,7 +20,7 @@ class _Col(object):
             self.index = [x for x in range(len(values))]
 
         # ingest values
-        if isinstance(values,str):
+        if isinstance(values, str):
             if index is not None:
                 self.values = [x for x in index]
             else:
@@ -28,9 +28,9 @@ class _Col(object):
         elif isinstance(values, Mapping):
             self.index = [y for y in values.keys()]
             self.values = [y for y in values.values()]
-        elif isinstance(values,Iterable):
+        elif isinstance(values, Iterable):
             self.values = values
-        elif ndim(values)==0:
+        elif ndim(values) == 0:
             if index is not None:
                 self.values = [x for x in index]
             else:
@@ -40,7 +40,7 @@ class _Col(object):
         self._nrow = len(self._rep_index)
         self.loc = _Loc(self)
         self.iloc = _ILoc(self)
-        self.shape = ( self._nrow, 1 )
+        self.shape = (self._nrow, 1)
 
     #####################################################################################
     # internals
@@ -55,9 +55,7 @@ class _Col(object):
         return _Col(
             [
                 val
-                for val in [
-                    x for ix, x in zip(self.index, self.values) if ix in rows
-                ]
+                for val in [x for ix, x in zip(self.index, self.values) if ix in rows]
             ],
             name=self.name,
             index=rows,
@@ -70,10 +68,10 @@ class _Col(object):
         return self._subset_loc(slice(0, n, None))
 
     def _subset_loc(self, rows):
-        '''
+        """
         implement .loc indexing behavior
         transform rows to index values and return subset
-        '''
+        """
         ### rows
         if isinstance(rows, slice):
             # get list of row index values based on the slicer
@@ -117,7 +115,6 @@ class _Col(object):
         elif ndim(rows) == 1:
             return self._col(rows)
 
-
     def _subset_iloc(self, rows):
         """
         implement .iloc indexing behavior
@@ -151,8 +148,8 @@ class _Col(object):
             yield i, self[i]
 
     def iteritems(self):
-        for i,v in zip(self.index,self.values):
-            yield i,v
+        for i, v in zip(self.index, self.values):
+            yield i, v
 
     def items(self):
         return self.iteritems()
@@ -177,7 +174,8 @@ class _Col(object):
     def __repr__(self):
         strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in self.values] for col in [self.name]
+            [str(col), "----"] + [str(val) for val in self.values]
+            for col in [self.name]
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
 
@@ -193,11 +191,7 @@ class _Col(object):
                 )
             )
             i += 1
-        rows.append(
-            " ".join(
-                ['duffel._Col', str(self.shape) ]
-            )
-        )
+        rows.append(" ".join(["duffel._Col", str(self.shape)]))
         return "\n" + "\n".join(rows) + "\n"
 
     def __len__(self):
