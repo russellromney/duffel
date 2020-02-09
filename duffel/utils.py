@@ -5,8 +5,11 @@ def _concat(values,axis=0, ignore_index=False):
     
     # check index overlap
     if not ignore_index:
-        assert len(set([x.index for x in values ])) == # list of all values
+        assert len(set([x.index for x in values ])) == '' # list of all values
     else:
+        pass
+
+    return ''
         
     
     # add columns that are not shared

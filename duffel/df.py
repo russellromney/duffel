@@ -448,9 +448,6 @@ class _DuffelDataFrame:
     def pivot_table(self, columns=None):
         pass
 
-    def append(self, data):
-        pass
-
     def merge(self, data, on=None, how=None):
         pass
 
@@ -489,7 +486,7 @@ class _DuffelDataFrame:
     #####################################################################################
 
     def __setitem__(self, index, value):
-        '''create a column'''
+        """create a column"""
         pass
 
     def __getitem__(self, index):
