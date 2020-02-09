@@ -125,72 +125,6 @@ class DataFrame:
             # create values
             self.values = [list(x) for x in zip(*values.values())]
 
-    # def __setitem__(self, index, value):
-    #     self.values[index] = value
-
-    def __getitem__(self, index):
-        """2D indexing on the data with slices and integers"""
-        # grab _Col by column name
-        if ndim(index) == 0:
-            return self._col(index)
-        elif isinstance(index, slice) or isinstance(index, Iterable):
-            return self.loc[:, index]
-        else:
-            raise ValueError("Not sure how to pull that column")
-        # # return column(s)
-        # if (
-        #     isinstance(index, str)
-        #     or (
-        #         isinstance(index, Iterable)
-        #         and sum([isinstance(x, str) for x in index]) == len(index)
-        #     )
-        #     and sum([x in self.columns for x in index]) == len(index)
-        # ):
-        #     if isinstance(index, str):
-        #         # single column
-        #         return [row[self._rep_columns[index]] for row in self.values]
-        #     else:
-        #         # multiple columns
-        #         return [
-        #             [row[self._rep_columns[col]] for col in index]
-        #             for row in self.values
-        #         ]
-
-        # # deal with single index or slice
-        # if not hasattr(index, "__len__"):
-        #     assert isinstance(index, int) or isinstance(index, slice)
-        #     return self.values[index]
-
-        # len_ = len(index)
-
-        # # multiple indexes - return the second index for all the first index
-        # if (
-        #     len_ == 2
-        #     and sum(
-        #         [
-        #             isinstance(x, int)
-        #             or isinstance(x, slice)
-        #             or isinstance(x, list)
-        #             or isinstance(x, tuple)
-        #             for x in index
-        #         ]
-        #     )
-        #     == 2
-        # ):
-        #     if isinstance(index[0], int):
-        #         return self.values[index[0]][index[1]]
-        #     return [x[index[1]] for x in self.values[index[0]]]
-
-        # # deal with boolean lists including 1s and 0s
-        # else:
-        #     assert len_ == len(
-        #         self.values
-        #     ), "Boolean selection iterable must be same length as data"
-        #     assert sum(
-        #         [isinstance(x, bool) or x == 0 or x == 1 for x in index]
-        #     ), "Boolean selection iterable must only contain bool values"
-        #     return [x for truth, x in zip(index, self.values) if truth]
-
     def _row(self, i, columns=None):
         if i >= self._nrow:
             raise IndexError("Row index out of range: %s" % i)
@@ -352,6 +286,21 @@ class DataFrame:
         # pass to .loc
         return self._subset_loc(rows, columns=columns)
 
+    #####################################################################################
+    # interface
+    #####################################################################################
+
+    def iterrows(self):
+        for i in range(self._nrow):
+            yield i, self[i]
+
+    def iteritems(self):
+        for col in self.columns:
+            yield col, self[col]
+
+    def items(self):
+        return self.iteritems()
+
     def sort_values(self, columns):
         # can sort with:
         # sorted(data, key=lambda x: (x[2], x[5]) ) sort ascending, ascending
@@ -411,7 +360,21 @@ class DataFrame:
         return self
 
     def transpose(self):
-        pass
+        # transpose values
+        self.values = list(map(list, zip(*self.values)))
+
+        # switch index and columns
+        temp_columns = self.columns
+        temp_index = self.index
+        self.columns = tuple(temp_index)
+        self.index = list(temp_columns)
+
+        # finish up
+        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
+        self._nrow = len(self.index)
+        self.shape = (self._nrow, len(self.columns))
+        return self
 
     def T(self):
         return self.transpose()
@@ -507,19 +470,75 @@ class DataFrame:
         return self._subset_loc(slice(0, n, None), None)
 
     #####################################################################################
-    # interface
+    # special methods
     #####################################################################################
 
-    def iterrows(self):
-        for i in range(self._nrow):
-            yield i, self[i]
+    # def __setitem__(self, index, value):
+    #     self.values[index] = value
 
-    def iteritems(self):
-        for col in self.columns:
-            yield col, self[col]
+    def __getitem__(self, index):
+        """2D indexing on the data with slices and integers"""
+        # grab _Col by column name
+        if ndim(index) == 0:
+            return self._col(index)
+        elif isinstance(index, slice) or isinstance(index, Iterable):
+            return self.loc[:, index]
+        else:
+            raise ValueError("Not sure how to pull that column")
+        # # return column(s)
+        # if (
+        #     isinstance(index, str)
+        #     or (
+        #         isinstance(index, Iterable)
+        #         and sum([isinstance(x, str) for x in index]) == len(index)
+        #     )
+        #     and sum([x in self.columns for x in index]) == len(index)
+        # ):
+        #     if isinstance(index, str):
+        #         # single column
+        #         return [row[self._rep_columns[index]] for row in self.values]
+        #     else:
+        #         # multiple columns
+        #         return [
+        #             [row[self._rep_columns[col]] for col in index]
+        #             for row in self.values
+        #         ]
 
-    def items(self):
-        return self.iteritems()
+        # # deal with single index or slice
+        # if not hasattr(index, "__len__"):
+        #     assert isinstance(index, int) or isinstance(index, slice)
+        #     return self.values[index]
+
+        # len_ = len(index)
+
+        # # multiple indexes - return the second index for all the first index
+        # if (
+        #     len_ == 2
+        #     and sum(
+        #         [
+        #             isinstance(x, int)
+        #             or isinstance(x, slice)
+        #             or isinstance(x, list)
+        #             or isinstance(x, tuple)
+        #             for x in index
+        #         ]
+        #     )
+        #     == 2
+        # ):
+        #     if isinstance(index[0], int):
+        #         return self.values[index[0]][index[1]]
+        #     return [x[index[1]] for x in self.values[index[0]]]
+
+        # # deal with boolean lists including 1s and 0s
+        # else:
+        #     assert len_ == len(
+        #         self.values
+        #     ), "Boolean selection iterable must be same length as data"
+        #     assert sum(
+        #         [isinstance(x, bool) or x == 0 or x == 1 for x in index]
+        #     ), "Boolean selection iterable must only contain bool values"
+        #     return [x for truth, x in zip(index, self.values) if truth]
+
 
     def _repr_html_(self):
         """
