@@ -4,15 +4,18 @@ from collections import Counter
 import random
 
 from .na import ndim, NA
-from .row import _Row
-from .col import _Col
+from .row import _DuffelRow
+from .col import _DuffelCol
 from .loc import _Loc, _ILoc
+from .utils import _concat
 
 
-class DataFrame:
+class _DuffelDataFrame:
     def __init__(self, values, columns=None, index=None, copy=True):
         if columns is not None:
             self.columns = tuple(list(columns))  # throws error if columns not iterator
+        else:
+            self.columns = columns
         self.empty = False
 
         # ingest values (all values will be iterable)
@@ -84,24 +87,32 @@ class DataFrame:
             # put values into memory - iterator fix - this is inefficient, sure
             values = list(values)
 
-            # iterable of iterables
-            if isinstance(values[0], Iterable) and not isinstance(values[0], Mapping):
-                maxlen = max([len(x) for x in values])
-                self.values = [
-                    [y for y in x] + [None] * (maxlen - len(x)) for x in values
-                ]
+            # dim 1
+            if ndim(values) == 1:
+                self.values = [values]
 
-            # iterable of dicts
-            elif isinstance(values[0], Mapping):
-                # keep the columns in order of first encounter
-                cols = reduce(
-                    lambda l, x: l.append(x) or l if x not in l else l,
-                    [y for x in values for y in list(x.keys())],
-                    [],
-                )
-                self.columns = tuple(cols)
-                # create values
-                self.values = [[x.get(k, None) for k in cols] for x in values]
+            # dim 2
+            else:
+                # iterable of iterables
+                if isinstance(values[0], Iterable) and not isinstance(
+                    values[0], Mapping
+                ):
+                    maxlen = max([len(x) for x in values])
+                    self.values = [
+                        [y for y in x] + [None] * (maxlen - len(x)) for x in values
+                    ]
+
+                # iterable of dicts
+                elif isinstance(values[0], Mapping):
+                    # keep the columns in order of first encounter
+                    cols = reduce(
+                        lambda l, x: l.append(x) or l if x not in l else l,
+                        [y for x in values for y in list(x.keys())],
+                        [],
+                    )
+                    self.columns = tuple(cols)
+                    # create values
+                    self.values = [[x.get(k, None) for k in cols] for x in values]
 
     def _ingest_mapping(self, values, columns=None, index=None):
         """ingest maps of iterables """
@@ -130,7 +141,7 @@ class DataFrame:
             raise IndexError("Row index out of range: %s" % i)
         if columns is None:
             columns = self.columns
-        return _Row(
+        return _DuffelRow(
             [val for col, val in zip(self.columns, self.values[i]) if col in columns],
             index=i,
             columns=columns,
@@ -140,7 +151,7 @@ class DataFrame:
         if rows is None:
             rows = self.index
         else:
-            return _Col(
+            return _DuffelCol(
                 [
                     val
                     for val in [
@@ -232,17 +243,17 @@ class DataFrame:
         if ndim(rows) == 0 and ndim(columns) == 0:
             return self.values[self._rep_index[rows]][self._rep_columns[columns]]
 
-        # single row, multiple columns => _Row
+        # single row, multiple columns => _DuffelRow
         elif ndim(rows) == 0 and ndim(columns) == 1:
             return self._row(rows, columns=columns)
 
-        # multiple rows, one column => _Col
+        # multiple rows, one column => _DuffelCol
         elif ndim(rows) == 1 and ndim(columns) == 0:
             return self._col(columns, rows=rows)
 
-        # multiple rows, multiple columns => DataFrame
+        # multiple rows, multiple columns => _DuffelDataFrame
         elif ndim(rows) == 1 and ndim(columns) == 1:
-            return DataFrame(
+            return _DuffelDataFrame(
                 [
                     [
                         val
@@ -376,6 +387,10 @@ class DataFrame:
         self.shape = (self._nrow, len(self.columns))
         return self
 
+    def append(self, values, index=None):
+        tempdf = _DuffelDataFrame(values, index=index, columns=self.columns)
+        self = _concat([self, tempdf], ignore_index=False, axis=0)
+
     def T(self):
         return self.transpose()
 
@@ -473,12 +488,13 @@ class DataFrame:
     # special methods
     #####################################################################################
 
-    # def __setitem__(self, index, value):
-    #     self.values[index] = value
+    def __setitem__(self, index, value):
+        '''create a column'''
+        pass
 
     def __getitem__(self, index):
         """2D indexing on the data with slices and integers"""
-        # grab _Col by column name
+        # grab _DuffelCol by column name
         if ndim(index) == 0:
             return self._col(index)
         elif isinstance(index, slice) or isinstance(index, Iterable):
@@ -538,7 +554,6 @@ class DataFrame:
         #         [isinstance(x, bool) or x == 0 or x == 1 for x in index]
         #     ), "Boolean selection iterable must only contain bool values"
         #     return [x for truth, x in zip(index, self.values) if truth]
-
 
     def _repr_html_(self):
         """

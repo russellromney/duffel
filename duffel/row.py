@@ -1,4 +1,4 @@
-class _Row(object):
+class _DuffelRow(object):
     def __init__(self, values, columns=None, index=None,):
         self.values = values
         self.columns = columns
@@ -45,7 +45,7 @@ class _Row(object):
             )
         rows.append(
             " ".join(
-                ['duffel._Row', str(self.shape) ]
+                ['duffel.Row', str(self.shape) ]
             )
         )
 

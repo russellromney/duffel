@@ -4,17 +4,19 @@ from .loc import _Loc, _ILoc
 from .na import ndim
 
 
-class _Col(object):
+class _DuffelCol(object):
     def __init__(self, values, name=None, index=None):
         self.name = name
 
         # create index
         if index is not None:
-            assert isinstance(index, Iterable), "_Col index must be an iterable"
-            assert len(index) == len(set(index)), "_Col index values must be unique"
+            assert isinstance(index, Iterable), "_DuffelCol index must be an iterable"
+            assert len(index) == len(
+                set(index)
+            ), "_DuffelCol index values must be unique"
             assert len(index) == len(
                 values
-            ), f"Col index length ({len(index)}) must match number of rows ({len(values)})"
+            ), f"_DuffelCol index length ({len(index)}) must match number of rows ({len(values)})"
             self.index = index
         else:
             self.index = [x for x in range(len(values))]
@@ -49,7 +51,7 @@ class _Col(object):
         return {v: k for k, v in self._rep_index.items()}
 
     def _col(self, rows):
-        return _Col(
+        return _DuffelCol(
             [
                 val
                 for val in [x for ix, x in zip(self.index, self.values) if ix in rows]
@@ -102,7 +104,7 @@ class _Col(object):
         if ndim(rows) == 0:
             return self.values[self._rep_index[rows]]
 
-        # multiple rows => _Col
+        # multiple rows => _DuffelCol
         elif ndim(rows) == 1:
             return self._col(rows)
 
@@ -151,7 +153,7 @@ class _Col(object):
     def tail(self, n=6):
         return self._subset_loc(slice(0, n, None))
 
-    def value_counts(self,dropna=False):
+    def value_counts(self, dropna=False):
         pass
 
     #####################################################################################
@@ -159,8 +161,10 @@ class _Col(object):
     #####################################################################################
 
     def __setitem__(self, index, value):
-        assert index in self.index, f"_Col index value must exist; ({index}) not in index"
-        self.values[ self._rep_index[index] ] = value
+        assert (
+            index in self.index
+        ), f"_DuffelCol index value must exist; ({index}) not in index"
+        self.values[self._rep_index[index]] = value
 
     def __getitem__(self, index):
         return self._subset_loc(index)
@@ -208,6 +212,6 @@ class _Col(object):
                 )
             )
             i += 1
-        rows.append(" ".join(["duffel._Col", str(self.shape)]))
+        rows.append(" ".join(["duffel.Col", str(self.shape)]))
         return "\n" + "\n".join(rows) + "\n"
 
