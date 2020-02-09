@@ -48,9 +48,6 @@ class _Col(object):
     def _invert_rep_index(self):
         return {v: k for k, v in self._rep_index.items()}
 
-    def __getitem__(self, index):
-        return self._subset_loc(index)
-
     def _col(self, rows):
         return _Col(
             [
@@ -60,12 +57,6 @@ class _Col(object):
             name=self.name,
             index=rows,
         )
-
-    def head(self, n=6):
-        return self._subset_loc(slice(0, n, None))
-
-    def tail(self, n=6):
-        return self._subset_loc(slice(0, n, None))
 
     def _subset_loc(self, rows):
         """
@@ -154,6 +145,32 @@ class _Col(object):
     def items(self):
         return self.iteritems()
 
+    def head(self, n=6):
+        return self._subset_loc(slice(0, n, None))
+
+    def tail(self, n=6):
+        return self._subset_loc(slice(0, n, None))
+
+    def value_counts(self,dropna=False):
+        pass
+
+    #####################################################################################
+    # special methods
+    #####################################################################################
+
+    def __setitem__(self, index, value):
+        assert index in self.index, f"_Col index value must exist; ({index}) not in index"
+        self.values[ self._rep_index[index] ] = value
+
+    def __getitem__(self, index):
+        return self._subset_loc(index)
+
+    def __len__(self):
+        return self._nrow
+
+    def __iter__(self):
+        return self.values.__iter__()
+
     def _repr_html_(self):
         """
         Jupyter Notebook magic repr function.
@@ -193,10 +210,4 @@ class _Col(object):
             i += 1
         rows.append(" ".join(["duffel._Col", str(self.shape)]))
         return "\n" + "\n".join(rows) + "\n"
-
-    def __len__(self):
-        return self._nrow
-
-    def __iter__(self):
-        return self.values.__iter__()
 
