@@ -159,7 +159,7 @@ rank
 round
 
 **Functions**
-pd.concat
+~~pd.concat~~
 pd.crosstab
 pd.cut
 pd.qcut
