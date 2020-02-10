@@ -7,7 +7,6 @@ from .na import ndim, NA
 from .row import _DuffelRow
 from .col import _DuffelCol
 from .loc import _Loc, _ILoc
-from .utils import _concat
 
 
 class _DuffelDataFrame:
@@ -40,8 +39,8 @@ class _DuffelDataFrame:
             assert isinstance(index, Iterable), "DF index must be an iterable"
             assert len(index) == len(set(index)), "DF index values must be unique"
             assert len(index) == len(
-                values
-            ), f"DF index length ({len(index)}) must match number of rows ({len(values)})"
+                self.values
+            ), f"DF index length ({len(index)}) must match number of rows ({len(self.values)})"
             self.index = index
         elif hasattr(self, "index") and self.index is not None:
             # it was created by being a dict of dicts
@@ -121,6 +120,7 @@ class _DuffelDataFrame:
             self.empty = True
         else:
             self.columns = tuple(values.keys())
+            
             # put scalar objects in single-len lists
             for col in values:
                 if isinstance(values[col], Iterable):
@@ -389,7 +389,7 @@ class _DuffelDataFrame:
 
     def append(self, values, index=None):
         tempdf = _DuffelDataFrame(values, index=index, columns=self.columns)
-        self = _concat([self, tempdf], ignore_index=False, axis=0)
+        #self = _concat([self, tempdf], ignore_index=False, axis=0)
 
     def T(self):
         return self.transpose()
