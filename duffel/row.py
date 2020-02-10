@@ -1,15 +1,15 @@
 class _DuffelRow(object):
-    def __init__(self, values, columns=None, index=None,):
+    def __init__(self, values, columns=None, index=None):
         self.values = values
         self.columns = columns
         self.index = index
-        self.shape = (1,len(self.columns))
+        self.shape = (1, len(self.columns))
 
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
 
-
     def __getitem__(self, column):
         return self.values[self._rep_columns[column]]
+
     #     if item in self:
     #         return super().__getitem__(item)
     #     else:
@@ -30,8 +30,9 @@ class _DuffelRow(object):
     def __repr__(self):
         strcols = [" ", " --"] + [(" " + str(self.index))]
         strcols = [strcols] + [
-            [str(col), "----"] + [str(val) for val in [ self.values[self._rep_columns[col]]] ]
-            for col in self.columns 
+            [str(col), "----"]
+            + [str(val) for val in [self.values[self._rep_columns[col]]]]
+            for col in self.columns
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
 
@@ -43,14 +44,9 @@ class _DuffelRow(object):
                     row[j] + " " * (nchars[j] - len(row[j])) for j in range(len(row))
                 )
             )
-        rows.append(
-            " ".join(
-                ['duffel.Row', str(self.shape) ]
-            )
-        )
+        rows.append(" ".join(["duffel.Row", str(self.shape)]))
 
         return "\n" + "\n".join(rows) + "\n"
-        
 
     # def keys(self):
     #     return self._keys

@@ -120,7 +120,7 @@ class _DuffelDataFrame:
             self.empty = True
         else:
             self.columns = tuple(values.keys())
-            
+
             # put scalar objects in single-len lists
             for col in values:
                 if isinstance(values[col], Iterable):
@@ -389,7 +389,7 @@ class _DuffelDataFrame:
 
     def append(self, values, index=None):
         tempdf = _DuffelDataFrame(values, index=index, columns=self.columns)
-        #self = _concat([self, tempdf], ignore_index=False, axis=0)
+        # self = _concat([self, tempdf], ignore_index=False, axis=0)
 
     def T(self):
         return self.transpose()
