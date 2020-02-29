@@ -119,9 +119,10 @@ select_dtypes
 shift
 ~~sort_index~~
 ~~sort_values~~
-to_csv
-to_json
+~~to_csv~~
+~~to_json~~
 to_sql
+~~to_dict~~
 
 **Aggregation Methods**
 all
