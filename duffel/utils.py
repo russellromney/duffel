@@ -171,6 +171,14 @@ def _read_csv(
     if columns is None:
         columns = detected_columns
 
+
+    #
+    # TODO - known issue
+    # sometimes you want to specify index values AND specify index_col that the given index should replace
+    # currently you can't specify an index and an index_col; 
+    # to fix this, I need pop the index col values as I would have before, then pass the index values to the DataFrame constructor
+    # I also need to add error checking to make sure there are >= index_col columns, and also normal index checking
+    #
     # deal with index col by popping values that don't belong
     if index_col is not None:
         assert (
