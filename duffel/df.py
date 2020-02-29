@@ -2,6 +2,7 @@ from typing import Iterable, Mapping
 from functools import reduce
 from collections import Counter
 import random
+import json
 
 from .na import ndim, NA
 from .row import _DuffelRow
@@ -469,11 +470,28 @@ class _DuffelDataFrame:
     def to_csv(self, fname, index=False):
         pass
 
-    def to_json(self):
-        pass
+    def to_json(self,filename):
+        '''
+        take a input filename 
+        save self.data as JSON to path at filename
+        object is in dict form: {<index>: { field: value, ...}, ... }
+
+        TODO: add ability to save as dict of lists (i.e. no index - faster to read later and smaller on disk)
+        '''
+        with open(filename, 'w') as fp:
+            json.dump( self.to_dict(), fp)
+        
+        return True
+            
 
     def to_sql(self, con):
         pass
+
+    def to_dict(self):
+        '''
+        return self.data and index in dict form: {<index> : { field:value, ...}, ... }
+        '''
+        return {i: self.values[ self._rep_index[i] ] for i in self.index}
 
     def head(self, n=6):
         return self._subset_loc(slice(0, n, None), None)
