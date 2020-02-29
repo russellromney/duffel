@@ -3,6 +3,7 @@ from functools import reduce
 from collections import Counter
 import random
 import json
+import csv
 
 from .na import ndim, NA
 from .row import _DuffelRow
@@ -467,8 +468,23 @@ class _DuffelDataFrame:
     def sample(self, n, seed=None, columns=None):
         pass
 
-    def to_csv(self, fname, index=False):
-        pass
+    def to_csv(self, filename, index=False):
+        '''
+        writes values to CSV located at filename
+
+        if index==True, write the index as the first row
+        '''
+        if index:
+            self.values = [[x]+v for x,v in zip(self.index, self.values)]
+        with open(filename, "w") as CSVreport:
+            wr = csv.writer(CSVreport)
+            wr.writerow([None, *self.columns])
+            wr.writerows( self.values )
+            CSVreport.close()
+        if index:
+            self.values = [x[1:] for x in self.values]
+        return True
+
 
     def to_json(self,filename):
         '''
