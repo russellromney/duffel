@@ -1,0 +1,37 @@
+{
+    "id": [
+        1,
+        2,
+        3,
+        4,
+        5
+    ],
+    "first_name": [
+        "Brinn",
+        "Wylma",
+        "Devin",
+        "Blinni",
+        "Byram"
+    ],
+    "last_name": [
+        "Herity",
+        "Lavell",
+        "Dearan",
+        "McClary",
+        "Weddup"
+    ],
+    "gender": [
+        "Female",
+        "Female",
+        "Female",
+        "Female",
+        "Male"
+    ],
+    "ip_address": [
+        "53.183.199.223",
+        "206.172.62.206",
+        "98.251.59.108",
+        "132.90.160.192",
+        "175.16.72.226"
+    ]
+}
