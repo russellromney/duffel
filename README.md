@@ -65,105 +65,108 @@ Build a dataframe solution that can be easily used in AWS Lambda functions for m
 
 Implement a significant subset of the "minimally sufficient" Pandas API as laid out in https://medium.com/dunder-data/minimally-sufficient-pandas-a8e67f2a2428:
 
-Implemented uses are struckthrough.
+
+## Project Progress 
+
+*Implemented functionality names are strikethrough -ed .*
 
 **Attributes**
-~~columns~~
-dtypes
-~~index~~
-~~shape~~
-T
-~~values~~
+- ~~columns~~
+- dtypes
+- ~~index~~
+- ~~shape~~
+- T
+- ~~values~~
 
 **Subset Selection**
-~~head~~
-~~iloc~~
-~~loc~~
-~~tail~~
+- ~~head~~
+- ~~iloc~~
+- ~~loc~~
+- ~~tail~~
 
 **Missing Value Handling**
-dropna
-fillna
-interpolate
-isna
-notna
+- dropna
+- fillna
+- interpolate
+- isna
+- notna
 
 **Grouping**
-expanding
-groupby
-pivot_table
-resample
-rolling
+- expanding
+- groupby
+- pivot_table
+- resample
+- rolling
 
 **Joining Data**
-~~append~~
-merge
+- ~~append~~
+- merge
 
 **Other**
-asfreq
-astype
-copy
-~~drop~~
-drop_duplicates
-equals
-isin
-melt
-plot
-rename
-replace
-~~reset_index~~
-sample
-select_dtypes
-shift
-~~sort_index~~
-~~sort_values~~
-~~to_csv~~
-~~to_json~~
-to_sql
-~~to_dict~~
+- asfreq
+- astype
+- copy
+- ~~drop~~
+- drop_duplicates
+- equals
+- isin
+- melt
+- plot
+- rename
+- replace
+- ~~reset_index~~
+- sample
+- select_dtypes
+- shift
+- ~~sort_index~~
+- ~~sort_values~~
+- ~~to_csv~~
+- ~~to_json~~
+- to_sql
+- ~~to_dict~~
 
 **Aggregation Methods**
-all
-any
-count
-describe
-idxmax
-idxmin
-max
-mean
-median
-min
-mode
-nunique
-sum
-std
-var
+- all
+- any
+- count
+- describe
+- idxmax
+- idxmin
+- max
+- mean
+- median
+- min
+- mode
+- nunique
+- sum
+- std
+- var
 
 **Non-Aggretaion Statistical Methods**
-abs
-clip
-corr
-cov
-cummax
-cummin
-cumprod
-cumsum
-diff
-nlargest
-nsmallest
-pct_change
-prod
-quantile
-rank
-round
+- abs
+- clip
+- corr
+- cov
+- cummax
+- cummin
+- cumprod
+- cumsum
+- diff
+- nlargest
+- nsmallest
+- pct_change
+- prod
+- quantile
+- rank
+- round
 
 **Functions**
-~~pd.concat~~
-pd.crosstab
-pd.cut
-pd.qcut
-~~pd.read_csv~~
-~~pd.read_json~~
-pd.read_sql
-pd.to_datetime
-pd.to_timedelta
+- ~~pd.concat~~
+- pd.crosstab
+- pd.cut
+- pd.qcut
+- ~~pd.read_csv~~
+- ~~pd.read_json~~
+- pd.read_sql
+- pd.to_datetime
+- pd.to_timedelta
