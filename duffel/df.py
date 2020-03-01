@@ -1,4 +1,4 @@
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Optional
 from functools import reduce
 from collections import Counter
 import random
@@ -18,6 +18,7 @@ class _DuffelDataFrame:
         else:
             self.columns = columns
         self.empty = False
+        self._index_name = 'index'
 
         # ingest values (all values will be iterable)
         assert isinstance(values, Iterable), "DF values must be an iterable"
@@ -360,16 +361,35 @@ class _DuffelDataFrame:
         return self
 
     def set_index(self, column):
+        return self._set_index(column)
+
+    def _set_index(self, column, internal: bool = False):        
         assert column in self.columns, "DF set_index column ({column}) not in columns"
         colindex = self._rep_columns[column]
 
         # create the index and edit the values by popping the values...is this too slow?
         self.index = [x.pop(colindex) for x in self.values]
+        self._index_name = column
 
         # finish up
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self.columns = tuple([x for x in self.columns if x != column])
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
+        return self
+
+    def reset_index(self, drop: bool = False, name: Optional[str, int, float] = None, index_name: Optional[str, int, float] = None):
+        if not drop:
+            if name is None:
+                name = self._index_name
+            assert not name in self.columns, "DF index name must not overwrite"
+            self[self._index_name] = self.index
+
+        # finish up
+        self['index'] = list(range(self._nrow))
+        if index_name is None: 
+            index_name = 'index'
+        self._index_name = index_name
+        self._rep_index = {k: v for v, k in enumerate(self.index)}
         return self
 
     def transpose(self):
@@ -384,6 +404,13 @@ class _DuffelDataFrame:
 
         # finish up
         self._rep_index = {k: v for v, k in enumerate(self.index)}
+    def reset_index(self, drop: bool = False):
+        if not drop:
+            self['index'] = list(range(self._nrow))
+
+        # finish up
+        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        return self
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
         self._nrow = len(self.index)
         self.shape = (self._nrow, len(self.columns))
@@ -462,8 +489,6 @@ class _DuffelDataFrame:
     def isin(self, value):
         pass
 
-    def reset_index(self, column):
-        pass
 
     def sample(self, n, seed=None, columns=None):
         pass
