@@ -337,15 +337,15 @@ class _DuffelDataFrame:
 
     def _get_shape(self):
         self.shape = (self._nrow, len(self.columns))
-    
+
     def _get_nrow(self):
         self._nrow = len(self.values)
 
     def _get_rep_columns(self):
-        self._rep_columns = {k:v for v,k in enumerate(self.columns)}
+        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
 
     def _get_rep_index(self):
-        self._rep_index = {k:v for v,k in enumerate(self.index)}
+        self._rep_index = {k: v for v, k in enumerate(self.index)}
 
     #####################################################################################
     # interface
@@ -572,36 +572,40 @@ class _DuffelDataFrame:
         pass
 
     def drop(self, index, axis=0):
-        '''
+        """
         takes index value(s)
-        '''
-        assert axis in (0,1), f"DF drop axis must be 0 or 1, not {axis}"
-        
-        if ndim(index)==0:
+        """
+        assert axis in (0, 1), f"DF drop axis must be 0 or 1, not {axis}"
+
+        if ndim(index) == 0:
             index = [index]
 
         # check that each index exists in axis
-        for ind in index:        
-            if axis==0:
-                assert index in self.index, f"DF drop error - index value {index} is not in DF index"
-            elif axis==1:
-                assert index in self.columns, f"DF drop error - column {index} is not in DF columns"
+        for ind in index:
+            if axis == 0:
+                assert (
+                    index in self.index
+                ), f"DF drop error - index value {index} is not in DF index"
+            elif axis == 1:
+                assert (
+                    index in self.columns
+                ), f"DF drop error - column {index} is not in DF columns"
 
         # then do the actual changes to the data
         for ind in index:
-            if axis==0:
+            if axis == 0:
                 # values
-                self.values.pop( self._rep_index(ind) )
+                self.values.pop(self._rep_index(ind))
 
-            elif axis==1:
+            elif axis == 1:
                 # values
-                [x.pop( self._rep_columns[ind] ) for x in self.values]
+                [x.pop(self._rep_columns[ind]) for x in self.values]
 
                 # columns
-                self.columns.pop( self._rep_columns[ind] )
+                self.columns.pop(self._rep_columns[ind])
                 self._get_rep_columns()
 
-         # finish up - fix shape and _nrow
+        # finish up - fix shape and _nrow
         self._get_shape()
         self._get_nrow()
         return self
@@ -738,8 +742,6 @@ class _DuffelDataFrame:
         self.columns = tuple(cols)
         self._get_rep_columns()
 
-        
-        
         # shape & _nrow
         self._get_nrow()
         self._get_shape()
