@@ -1,4 +1,4 @@
-from typing import Iterable, Mapping, Optional
+from typing import Iterable, Mapping, Optional, List
 from functools import reduce
 from collections import Counter
 import random
@@ -300,6 +300,29 @@ class _DuffelDataFrame:
         # pass to .loc
         return self._subset_loc(rows, columns=columns)
 
+    @classmethod
+    def _from_dataframe(cls, df: _DuffelDataFrame):
+        '''
+        create a dataframe from another Dataframe (i.e. no copy)
+        '''
+        _index_name = df._index_name
+        
+        # this includes the columns and index
+        out = cls(df.to_dict())
+        out._index_name = _index_name
+        
+        return out
+
+    def _set_index(self, data: List, name: Optional[str, int, float]):
+        '''
+        internal function for setting the index
+        change the index value, change the 
+        '''
+        self.index = list(data)
+        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        self._index_name = column
+        return self
+
     #####################################################################################
     # interface
     #####################################################################################
@@ -361,21 +384,18 @@ class _DuffelDataFrame:
         return self
 
     def set_index(self, column):
-        return self._set_index(column)
-
-    def _set_index(self, column, internal: bool = False):        
         assert column in self.columns, "DF set_index column ({column}) not in columns"
         colindex = self._rep_columns[column]
 
-        # create the index and edit the values by popping the values...is this too slow?
-        self.index = [x.pop(colindex) for x in self.values]
-        self._index_name = column
+        # create the data and edit the values by popping the values
+        data = [x.pop(colindex) for x in self.values]
 
-        # finish up
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        # column ramifications
         self.columns = tuple([x for x in self.columns if x != column])
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
-        return self
+        
+        # call the internal function
+        return self._set_index(data, column)
 
     def reset_index(self, drop: bool = False, name: Optional[str, int, float] = None, index_name: Optional[str, int, float] = None):
         if not drop:
@@ -384,12 +404,19 @@ class _DuffelDataFrame:
             assert not name in self.columns, "DF index name must not overwrite"
             self[self._index_name] = self.index
 
-        # finish up
+        # set actual index values
         self['index'] = list(range(self._nrow))
         if index_name is None: 
             index_name = 'index'
         self._index_name = index_name
         self._rep_index = {k: v for v, k in enumerate(self.index)}
+
+        # edit columns
+        self.columns = (*self.columns, index_name)
+        self._rep_index = {k:v for k,v in zip(self.columns, range(len(self.columns)))}
+        
+        # finish up
+        self.shape = (self._nrow, len(self.columns))
         return self
 
     def transpose(self):
@@ -404,17 +431,6 @@ class _DuffelDataFrame:
 
         # finish up
         self._rep_index = {k: v for v, k in enumerate(self.index)}
-    def reset_index(self, drop: bool = False):
-        if not drop:
-            self['index'] = list(range(self._nrow))
-
-        # finish up
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
-        return self
-        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
-        self._nrow = len(self.index)
-        self.shape = (self._nrow, len(self.columns))
-        return self
 
     def append(self, values, index=None):
         tempdf = _DuffelDataFrame(values, index=index, columns=self.columns)
