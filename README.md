@@ -105,7 +105,7 @@ merge
 asfreq
 astype
 copy
-drop
+~~drop~~
 drop_duplicates
 equals
 isin
