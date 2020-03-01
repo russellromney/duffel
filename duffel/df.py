@@ -74,10 +74,10 @@ class _DuffelDataFrame:
             self.columns = tuple([x for x in range(len(self.values))])
 
         # create enumerated internal representation of index and columns
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
-        self._nrow = len(self._rep_index)
-        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
-        self.shape = (self._nrow, len(self.columns))
+        self._get_rep_index()
+        self._get_nrow()
+        self._get_rep_columns()
+        self._get_shape()
 
         # loc and iloc
         self.iloc = _ILoc(self)
@@ -332,8 +332,20 @@ class _DuffelDataFrame:
             str,
         ), "DF column name must be int, float, or string"
         self.index = list(data)
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        self._get_rep_index()
         self._index_name = name
+
+    def _get_shape(self):
+        self.shape = (self._nrow, len(self.columns))
+    
+    def _get_nrow(self):
+        self._nrow = len(self.values)
+
+    def _get_rep_columns(self):
+        self._rep_columns = {k:v for v,k in enumerate(self.columns)}
+
+    def _get_rep_index(self):
+        self._rep_index = {k:v for v,k in enumerate(self.index)}
 
     #####################################################################################
     # interface
@@ -373,7 +385,7 @@ class _DuffelDataFrame:
             )
         self.index = [x[-1] for x in temp]
         self.values = [x[:-1] for x in temp]
-        self._rep_index = dict(zip(range(self._nrow), self.index))
+        self._get_rep_index()
         return self
 
     def sort_index(self):
@@ -383,16 +395,16 @@ class _DuffelDataFrame:
             [random.choice("1234567890abcdefghijklmnopqrstuvwxyz") for x in range(20)]
         )
         self.columns = [*self.columns, new]
-        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
+        self._get_rep_columns()
 
         # sort the list of self._rep_index and then recreate with list comprehension including range()
         self = self.sort_values(new)
 
         # finish up
         self.index = [x[-1] for x in self.values]
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        self._get_rep_index()
         self.columns = self.columns[:-1]
-        self._rep_columns = {k: v for k, v in self._rep_columns.items() if k != new}
+        self._get_rep_columns()
         return self
 
     def set_index(self, column):
@@ -404,7 +416,7 @@ class _DuffelDataFrame:
 
         # column ramifications
         self.columns = tuple([x for x in self.columns if x != column])
-        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
+        self._get_rep_columns()
 
         # call the internal function
         self._set_index(data, column)
@@ -442,10 +454,10 @@ class _DuffelDataFrame:
 
         # edit columns
         self.columns = (*self.columns, index_name)
-        self._rep_index = {k: v for v, k in enumerate(self.columns)}
+        self._get_rep_columns()
 
         # finish up
-        self.shape = (self._nrow, len(self.columns))
+        self._get_shape()
         return self
 
     def transpose(self):
@@ -459,7 +471,7 @@ class _DuffelDataFrame:
         self.index = list(temp_columns)
 
         # finish up
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        self._get_rep_index()
         return self
 
     def append(self, values: Iterable, index):
@@ -494,7 +506,7 @@ class _DuffelDataFrame:
 
         # add to index
         self.index = [*self.index, index]
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        self._get_rep_index()
 
         # add value
         self.values.append(values)
@@ -560,7 +572,39 @@ class _DuffelDataFrame:
         pass
 
     def drop(self, index, axis=0):
-        pass
+        '''
+        takes index value(s)
+        '''
+        assert axis in (0,1), f"DF drop axis must be 0 or 1, not {axis}"
+        
+        if ndim(index)==0:
+            index = [index]
+
+        # check that each index exists in axis
+        for ind in index:        
+            if axis==0:
+                assert index in self.index, f"DF drop error - index value {index} is not in DF index"
+            elif axis==1:
+                assert index in self.columns, f"DF drop error - column {index} is not in DF columns"
+
+        # then do the actual changes to the data
+        for ind in index:
+            if axis==0:
+                # values
+                self.values.pop( self._rep_index(ind) )
+
+            elif axis==1:
+                # values
+                [x.pop( self._rep_columns[ind] ) for x in self.values]
+
+                # columns
+                self.columns.pop( self._rep_columns[ind] )
+                self._get_rep_columns()
+
+         # finish up - fix shape and _nrow
+        self._get_shape()
+        self._get_nrow()
+        return self
 
     def drop_duplicates(self, columns=None):
         pass
@@ -692,10 +736,13 @@ class _DuffelDataFrame:
             # edit current column
             cols[col_index] = col
         self.columns = tuple(cols)
-        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
+        self._get_rep_columns()
 
-        # shape
-        self.shape = (self._nrow, len(self.columns))
+        
+        
+        # shape & _nrow
+        self._get_nrow()
+        self._get_shape()
 
     def __getitem__(self, index):
         """2D indexing on the data with slices and integers"""
