@@ -11,6 +11,7 @@ from .col import _DuffelCol
 from .loc import _Loc, _ILoc
 from . import base_utils
 
+
 class _DuffelDataFrame:
     def __init__(self, values, columns=None, index=None, **kwargs):
         # ingest an existing dataframe
@@ -474,20 +475,26 @@ class _DuffelDataFrame:
         # tempdf = _DuffelDataFrame(values, index=index, columns=self.columns)
         # if index is not None or tempdf.index!=list(range(tempdf._nrow)):
         #     assert len(set(self.index)) == len(self.index)+len(index), "DF append index must be unique"
-        
+
         # values length
-        assert len(values) <= len(self.columns), f"DF append values must container <= number of values as columns in DF; {len(values)} is too many"
+        assert len(values) <= len(
+            self.columns
+        ), f"DF append values must container <= number of values as columns in DF; {len(values)} is too many"
         values = [*values, *[None for x in range(len(self.columns) - len(values))]]
 
         # index type validity
-        assert isinstance(index, (int, float, str)), f"DF append index value must be int, str, float, not {type(index)}"
+        assert isinstance(
+            index, (int, float, str)
+        ), f"DF append index value must be int, str, float, not {type(index)}"
 
         # index uniqueness
-        assert index not in self.index, "DF append index value must be unique relative to DF index"
+        assert (
+            index not in self.index
+        ), "DF append index value must be unique relative to DF index"
 
         # add to index
         self.index = [*self.index, index]
-        self._rep_index = {k:v for v,k in enumerate(self.index)}
+        self._rep_index = {k: v for v, k in enumerate(self.index)}
 
         # add value
         self.values.append(values)
@@ -641,11 +648,11 @@ class _DuffelDataFrame:
             }
 
     def head(self, n=5):
-        '''returns .loc of first 5 rows'''
+        """returns .loc of first 5 rows"""
         return self._subset_loc(slice(0, n, None), None)
 
     def tail(self, n=5):
-        '''returns .loc of last 5 rows'''
+        """returns .loc of last 5 rows"""
         return self._subset_loc(slice(0, n, None), None)
 
     #####################################################################################

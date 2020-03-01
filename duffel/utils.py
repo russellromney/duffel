@@ -5,6 +5,7 @@ from .na import NA
 from .df import _DuffelDataFrame
 from . import base_utils
 
+
 def _isna(val):
     pass
 
@@ -111,11 +112,10 @@ def _read_csv(
     if columns is None:
         columns = detected_columns
 
-
     #
     # TODO - known issue
     # sometimes you want to specify index values AND specify index_col that the given index should replace
-    # currently you can't specify an index and an index_col; 
+    # currently you can't specify an index and an index_col;
     # to fix this, I need pop the index col values as I would have before, then pass the index values to the DataFrame constructor
     # I also need to add error checking to make sure there are >= index_col columns, and also normal index checking
     #
@@ -136,7 +136,9 @@ def _read_csv(
     else:
         index_col_name = None
 
-    return _DuffelDataFrame(records, columns=columns, index=index, _index_name=index_col_name)
+    return _DuffelDataFrame(
+        records, columns=columns, index=index, _index_name=index_col_name
+    )
 
 
 def read_json(reader):
