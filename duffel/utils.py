@@ -179,6 +179,7 @@ def _read_csv(
     # to fix this, I need pop the index col values as I would have before, then pass the index values to the DataFrame constructor
     # I also need to add error checking to make sure there are >= index_col columns, and also normal index checking
     #
+
     # deal with index col by popping values that don't belong
     if index_col is not None:
         assert (
@@ -189,9 +190,9 @@ def _read_csv(
         ), f"DF index_col must be an interger; index col was ({index_col})"
         index = [x.pop(index_col) for x in records]
         if columns is not None:
-            columns.pop(index_col)
+            index_col_name = columns.pop(index_col)
 
-    return _DuffelDataFrame(records, columns=columns, index=index)
+    return _DuffelDataFrame(records, columns=columns, index=index, _index_name=index_col_name)
 
 
 def read_json(reader):

@@ -12,13 +12,12 @@ from .loc import _Loc, _ILoc
 
 
 class _DuffelDataFrame:
-    def __init__(self, values, columns=None, index=None, copy=True):
+    def __init__(self, values, columns=None, index=None, copy=True, **kwargs):
         if columns is not None:
             self.columns = tuple(list(columns))  # throws error if columns not iterator
         else:
             self.columns = columns
         self.empty = False
-        self._index_name = "index"
 
         # ingest values (all values will be iterable)
         assert isinstance(values, Iterable), "DF values must be an iterable"
@@ -50,6 +49,12 @@ class _DuffelDataFrame:
             pass
         else:
             self.index = [x for x in range(len(self.values))]
+
+        # named index
+        if "_index_name" in kwargs and not kwargs["_index_name"] is None:
+            self._index_name = kwargs["_index_name"]
+        else:
+            self._index_name = "index"
 
         # deal with columns
         if self.columns is not None:
@@ -325,7 +330,6 @@ class _DuffelDataFrame:
         self.index = list(data)
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self._index_name = name
-        return self
 
     #####################################################################################
     # interface
@@ -399,9 +403,11 @@ class _DuffelDataFrame:
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
 
         # call the internal function
-        return self._set_index(data, column)
+        self._set_index(data, column)
+        return self
 
     def reset_index(self, drop: bool = False, name=None, index_name=None):
+        # add a column if needed
         if not drop:
             assert name is None or type(name) in (
                 int,
@@ -413,19 +419,22 @@ class _DuffelDataFrame:
                 float,
                 str,
             ), "DF index name must be int, str, float"
+
+            # if a name is not specified, new column is the index name
             if name is None:
                 name = self._index_name
+
             assert (
                 not name in self.columns
             ), "DF index name must not overwrite an existing column"
-            self[self._index_name] = self.index  # TODO SETITEM IS NOT FULLY IMPLEMENTED
+
+            # actually change column
+            self[name] = self.index
 
         # set actual index values
-        self["index"] = list(range(self._nrow))
         if index_name is None:
             index_name = "index"
-        self._index_name = index_name
-        self._rep_index = {k: v for v, k in enumerate(self.index)}
+        self._set_index(list(range(self._nrow)), name=index_name)
 
         # edit columns
         self.columns = (*self.columns, index_name)
