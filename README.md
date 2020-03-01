@@ -98,7 +98,7 @@ resample
 rolling
 
 **Joining Data**
-append
+~~append~~
 merge
 
 **Other**
@@ -113,7 +113,7 @@ melt
 plot
 rename
 replace
-reset_index
+~~reset_index~~
 sample
 select_dtypes
 shift
