@@ -18,7 +18,7 @@ class _DuffelDataFrame:
         else:
             self.columns = columns
         self.empty = False
-        self._index_name = 'index'
+        self._index_name = "index"
 
         # ingest values (all values will be iterable)
         assert isinstance(values, Iterable), "DF values must be an iterable"
@@ -302,22 +302,22 @@ class _DuffelDataFrame:
 
     @classmethod
     def _from_dataframe(cls, df: _DuffelDataFrame):
-        '''
+        """
         create a dataframe from another Dataframe (i.e. no copy)
-        '''
+        """
         _index_name = df._index_name
-        
+
         # this includes the columns and index
         out = cls(df.to_dict())
         out._index_name = _index_name
-        
+
         return out
 
     def _set_index(self, data: List, name: Optional[str, int, float]):
-        '''
+        """
         internal function for setting the index
         change the index value, change the 
-        '''
+        """
         self.index = list(data)
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self._index_name = name
@@ -393,11 +393,16 @@ class _DuffelDataFrame:
         # column ramifications
         self.columns = tuple([x for x in self.columns if x != column])
         self._rep_columns = {k: v for v, k in enumerate(self.columns)}
-        
+
         # call the internal function
         return self._set_index(data, column)
 
-    def reset_index(self, drop: bool = False, name: Optional[str, int, float] = None, index_name: Optional[str, int, float] = None):
+    def reset_index(
+        self,
+        drop: bool = False,
+        name: Optional[str, int, float] = None,
+        index_name: Optional[str, int, float] = None,
+    ):
         if not drop:
             if name is None:
                 name = self._index_name
@@ -405,16 +410,16 @@ class _DuffelDataFrame:
             self[self._index_name] = self.index
 
         # set actual index values
-        self['index'] = list(range(self._nrow))
-        if index_name is None: 
-            index_name = 'index'
+        self["index"] = list(range(self._nrow))
+        if index_name is None:
+            index_name = "index"
         self._index_name = index_name
         self._rep_index = {k: v for v, k in enumerate(self.index)}
 
         # edit columns
         self.columns = (*self.columns, index_name)
-        self._rep_index = {k:v for k,v in zip(self.columns, range(len(self.columns)))}
-        
+        self._rep_index = {k: v for k, v in zip(self.columns, range(len(self.columns)))}
+
         # finish up
         self.shape = (self._nrow, len(self.columns))
         return self
@@ -506,50 +511,47 @@ class _DuffelDataFrame:
     def isin(self, value):
         pass
 
-
     def sample(self, n, seed=None, columns=None):
         pass
 
     def to_csv(self, filename, index=False):
-        '''
+        """
         writes values to CSV located at filename
 
         if index==True, write the index as the first row
-        '''
+        """
         if index:
-            self.values = [[x]+v for x,v in zip(self.index, self.values)]
+            self.values = [[x] + v for x, v in zip(self.index, self.values)]
         with open(filename, "w") as CSVreport:
             wr = csv.writer(CSVreport)
             wr.writerow([None, *self.columns])
-            wr.writerows( self.values )
+            wr.writerows(self.values)
             CSVreport.close()
         if index:
             self.values = [x[1:] for x in self.values]
         return True
 
-
-    def to_json(self,filename):
-        '''
+    def to_json(self, filename):
+        """
         take a input filename 
         save self.data as JSON to path at filename
         object is in dict form: {<index>: { field: value, ...}, ... }
 
         TODO: add ability to save as dict of lists (i.e. no index - faster to read later and smaller on disk)
-        '''
-        with open(filename, 'w') as fp:
-            json.dump( self.to_dict(), fp)
-        
+        """
+        with open(filename, "w") as fp:
+            json.dump(self.to_dict(), fp)
+
         return True
-            
 
     def to_sql(self, con):
         pass
 
     def to_dict(self):
-        '''
+        """
         return self.data and index in dict form: {<index> : { field:value, ...}, ... }
-        '''
-        return {i: self.values[ self._rep_index[i] ] for i in self.index}
+        """
+        return {i: self.values[self._rep_index[i]] for i in self.index}
 
     def head(self, n=6):
         return self._subset_loc(slice(0, n, None), None)
