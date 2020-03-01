@@ -320,7 +320,7 @@ class _DuffelDataFrame:
         '''
         self.index = list(data)
         self._rep_index = {k: v for v, k in enumerate(self.index)}
-        self._index_name = column
+        self._index_name = name
         return self
 
     #####################################################################################
@@ -431,6 +431,7 @@ class _DuffelDataFrame:
 
         # finish up
         self._rep_index = {k: v for v, k in enumerate(self.index)}
+        return self
 
     def append(self, values, index=None):
         tempdf = _DuffelDataFrame(values, index=index, columns=self.columns)
