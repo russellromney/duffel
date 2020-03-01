@@ -1,8 +1,10 @@
-from typing import Iterable
+from typing import Iterable, IO
 import csv
+import json
 
 from .na import NA
 from .df import _DuffelDataFrame
+from .col import _DuffelCol
 from . import base_utils
 
 
@@ -141,8 +143,39 @@ def _read_csv(
     )
 
 
-def read_json(reader):
-    pass
+def _read_json(path_or_buf, orient: str = "dict", typ: str = "frame"):
+    """
+    reads the file or buffer to dict
+    returns a DataFrame based on the orient
+    """
+    # parameter checking
+    assert isinstance(path_or_buf, IO) or isinstance(
+        path_or_buf, str
+    ), f"duffel.read_json only accepts path-like or buffer-like objects, not {type(path_or_buf)}"
+    
+    assert typ in (
+        "frame",
+        "series",
+    ), f"duffel.read_json typ must be 'frame' or 'series', not {typ}"
+    
+    assert orient in {
+        "dict",
+        "records",
+        "index",
+        "split",
+        "series",
+        "list",
+    }, f"duffel.read_json orient must be in ('dict','records','index','split','series', 'list'), not {orient}"
+
+    # set up to read into either a series or a dataframe
+    typ_d = {"series": _DuffelCol, "frame": _DuffelDataFrame}
+
+    # finish up
+    if isinstance(path_or_buf, IO):
+        return typ_d[typ](json.load(path_or_buf))
+
+    elif isinstance(path_or_buf, str):
+        return typ_d[typ](json.load(open(path_or_buf)))
 
 
 def read_sql(q, con):

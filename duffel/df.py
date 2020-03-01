@@ -125,7 +125,14 @@ class _DuffelDataFrame:
                     self.values = [[x.get(k, None) for k in cols] for x in values]
 
     def _ingest_mapping(self, values, columns=None, index=None):
-        """ingest maps of iterables """
+        """
+        ingest maps of iterables
+        
+        TODO: need to standardize the mapping ingest based on the orient types
+            a) detect orientation or take as argument
+            b) read in
+            See to_dict for reference
+        """
         if not len(values):
             self.values = [[]]
             self.empty = True
@@ -636,16 +643,26 @@ class _DuffelDataFrame:
             self.values = [x[1:] for x in self.values]
         return True
 
-    def to_json(self, filename):
+    def to_json(self, filename, orient: str = 'dict'):
         """
-        take a input filename 
-        save self.data as JSON to path at filename
+        take a input filename, orient str
+        save self.data as JSON to path at filename in orient format
         object is in dict form: {<index>: { field: value, ...}, ... }
 
         TODO: add ability to save as dict of lists (i.e. no index - faster to read later and smaller on disk)
         """
+        # check orient type
+        assert orient in {
+            "dict",
+            "records",
+            "index",
+            "split",
+            "series",
+            "list",
+        }, f"DF.to_dict orient must be in ('dict','records','index','split','series', 'list'), not {orient}"
+
         with open(filename, "w") as fp:
-            json.dump(self.to_dict(), fp)
+            json.dump(self.to_dict(orient), fp)
 
         return True
 
