@@ -2,43 +2,40 @@
 Lightweight Python data frames without bloat or typecasting, using only the standard library.
 
 
-```
+```bash
 git clone https://github.com/russellromney/duffel
 cd duffel
+```
 
-
+```python
 import duffel as pd
 
-df = pd.read_csv('duffel/MOCK_DATA.csv')
+df = pd.read_csv('duffel/data/MOCK_DATA.csv',index_col=0)
 
 df.shape
 >>> (1000, 6)
 
-df.head()
+df.head(2)
 >>>
-     id    first_name  last_name  email                      gender  ip_address      
- --  ----  ----        ----       ----                       ----    ----            
- 0   1     Brinn       Herity     bherity0@hugedomains.com   Female  53.183.199.223  
- 1   2     Wylma       Lavell     wlavell1@stumbleupon.com   Female  206.172.62.206  
- 2   3     Devin       Dearan     ddearan2@businessweek.com  Female  98.251.59.108   
- 3   4     Blinni      McClary    bmcclary3@pbs.org          Female  132.90.160.192  
- 4   5     Byram       Weddup     bweddup4@csmonitor.com     Male    175.16.72.226   
- 5   6     Jolynn      Glanvill   jglanvill5@mail.ru         Female  205.230.55.59   
-duffel.DataFrame (6, 6)
+index  first_name  last_name  email                     gender  ip_address      
+ --    ----        ----       ----                      ----    ----            
+ 1     Brinn       Herity     bherity0@hugedomains.com  Female  53.183.199.223  
+ 2     Wylma       Lavell     wlavell1@stumbleupon.com  Female  206.172.62.206  
+duffel.DataFrame (1000, 5)
 
 df.loc[576]
 >>>
-      id    first_name  last_name  email                      gender  ip_address      
- --   ----  ----        ----       ----                       ----    ----            
- 576  577   Cesaro      Ohrtmann   cohrtmanng0@tuttocitta.it  Male    252.141.154.52  
-duffel._Row (1, 6)
+      first_name  last_name  email                      gender  ip_address      
+ --   ----        ----       ----                       ----    ----            
+ 576  Cesaro      Ohrtmann   cohrtmanng0@tuttocitta.it  Male    252.141.154.52  
+duffel.Row (1, 5)
 
 df.loc[5:7, ['first_name','gender']]
 >>>
-     first_name  gender  
- --  ----        ----    
- 5   Jolynn      Female  
- 6   Moina       Female  
+index  first_name  gender  
+ --    ----        ----    
+ 6     Jolynn      Female  
+ 7     Moina       Female  
 duffel.DataFrame (2, 2)
 ```
 

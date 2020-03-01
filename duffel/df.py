@@ -626,9 +626,9 @@ class _DuffelDataFrame:
     def sample(self, n, seed=None, columns=None):
         pass
 
-    def from_dict(self, data, orient: str = 'dict', columns: Optional[Iterable] = None):
+    def from_dict(self, data, orient: str = "dict", columns: Optional[Iterable] = None):
         pass
-    
+
     def to_csv(self, filename, index=False):
         """
         writes values to CSV located at filename
@@ -646,7 +646,7 @@ class _DuffelDataFrame:
             self.values = [x[1:] for x in self.values]
         return True
 
-    def to_json(self, filename, orient: str = 'dict'):
+    def to_json(self, filename, orient: str = "dict"):
         """
         take a input filename, orient str
         save self.data as JSON to path at filename in orient format
@@ -847,10 +847,13 @@ class _DuffelDataFrame:
         return html
 
     def __repr__(self):
-        strcols = [" ", " --"] + [(" " + str(i)) for i in self.index]
+        strcols = [self._index_name, " --"] + [(" " + str(i)) for i in self.index[:10]]
         strcols = [strcols] + [
             [str(col), "----"]
-            + [str(val) for val in [x[self._rep_columns[col]] for x in self.values]]
+            + [
+                str(val)
+                for val in [x[self._rep_columns[col]] for x in self.values[:10]]
+            ]
             for col in self.columns
         ]
         nchars = [max(len(val) for val in col) + 2 for col in strcols]
