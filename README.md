@@ -1,13 +1,14 @@
 # duffel
 Lightweight Python data frames without bloat or typecasting, using only the standard library.
 
+Take your data with you to the cloud without the bloat of a 200kg full-grown bear that refuses to mate.
 
-```bash
+```
 git clone https://github.com/russellromney/duffel
 cd duffel
 ```
 
-```python
+```
 import duffel as pd
 
 df = pd.read_csv('duffel/data/MOCK_DATA.csv',index_col=0)
@@ -50,7 +51,7 @@ Pandas is great for hardcore analytical workloads. However, If you are using Pan
 - Pandas sometimes returns some subset of a dataframe with a link to the original, instead of making a new dataframe
 - Pandas throws strange errors while allowing operations to work - instead of throwing clear errors that are real exceptions
 
-It is to solve these problems that I want to build ~~red-pandas~~ duffel: a smaller, simpler dataframe tool that relies only on the standard library and is generally a drop-in replacement for the Pandas API. Take your data with you, without the bloat of a 400kg full-grown bear.
+It is to solve these problems that I'm building ~~red-pandas~~ duffel: a smaller, simpler dataframe tool that relies only on the standard library and is generally a drop-in replacement for the Pandas API. 
 
 ## Notes
 
