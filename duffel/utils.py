@@ -1,8 +1,9 @@
 from typing import Iterable
 import csv
+
 from .na import NA
 from .df import _DuffelDataFrame
-
+from . import base_utils
 
 def _isna(val):
     pass
@@ -26,70 +27,9 @@ def _merge(data, on, how="inner"):
 
 def _concat(values, axis=0, ignore_index=False):
     """
-    standard join is outer - this is supported first
-    only able to do axis 0 and 1
-    ignore index counts for columns and for index
+    uses base_utils _base_concat
     """
-
-    # must be duffel objects
-    assert isinstance(values, Iterable), "concat values must be a list or iterable"
-    for item in values:
-        assert any(
-            (
-                type(item).__name__ == "_DuffelDataFrame",
-                type(item).__name__ == "_DuffelCol",
-            )
-        ), f"duffel.concat values must be type duffel.col.Col or duffel.df.DataFrame, not {type(item)}"
-
-    # check index overlap
-    if not ignore_index:
-        indexes = [i for y in [x.index for x in values] for i in y]
-        set_indexes = set([i for y in [x.index for x in values] for i in y])
-        assert len(indexes) == len(
-            set_indexes
-        ), "concat indexes must be unique if ignore_index=False"
-    else:
-        pass
-
-    # create set of columns
-    columns = []
-    for x in values:
-        if hasattr(x, "columns"):  # is dataframe
-            columns = columns + [c for c in x.columns if not c in columns]
-        else:  # is column
-            columns = columns + [c for c in [x.name] if not c in columns]
-
-    # concat the data
-    data = {col: [] for col in columns}
-    for x in values:
-        # is dataframe
-        if hasattr(x, "columns"):
-            for col in columns:
-                if col in x.columns:
-                    data[col].extend([row[x._rep_columns[col]] for row in x.values])
-                else:
-                    data[col].extend([None for row in range(x._nrow)])
-        # is dataframe
-        else:
-            if col == x.name:
-                data[col].append([val for val in x.values])
-            else:
-                data[col].extend([None for row in range(x._nrow)])
-
-    nrow = len(data[list(data.keys())[0]])
-
-    # create index
-    if ignore_index == True:
-        index = list(range(nrow))
-    else:
-        index = [i for y in [x.index for x in values] for i in y]
-        assert (
-            len(set(index)) == nrow
-        ), "concat index values must be unique if ignore_index=False"
-
-    # print([len(data[x]) for x in columns],index,columns)
-
-    # finish up
+    data, index, columns = base_utils._base_concat(values, axis, ignore_index)
     return _DuffelDataFrame(data, index=index, columns=columns)
 
 
@@ -191,6 +131,10 @@ def _read_csv(
         index = [x.pop(index_col) for x in records]
         if columns is not None:
             index_col_name = columns.pop(index_col)
+        else:
+            index_col_name = None
+    else:
+        index_col_name = None
 
     return _DuffelDataFrame(records, columns=columns, index=index, _index_name=index_col_name)
 
