@@ -312,12 +312,16 @@ class _DuffelDataFrame:
 
         return out
 
-    def _set_index(self, data: List, name = None):
+    def _set_index(self, data: List, name=None):
         """
         internal function for setting the index
         change the index value, change the 
         """
-        assert type(name) in (int, float, str), "DF column name must be int, float, or string"
+        assert type(name) in (
+            int,
+            float,
+            str,
+        ), "DF column name must be int, float, or string"
         self.index = list(data)
         self._rep_index = {k: v for v, k in enumerate(self.index)}
         self._index_name = name
@@ -397,19 +401,24 @@ class _DuffelDataFrame:
         # call the internal function
         return self._set_index(data, column)
 
-    def reset_index(
-        self,
-        drop: bool = False,
-        name = None,
-        index_name = None,
-    ):
+    def reset_index(self, drop: bool = False, name=None, index_name=None):
         if not drop:
-            assert name is None or type(name) in (int, float, str), "DF column name must be int, str, float"
-            assert index_name is None or type(index_name) in (int, float, str), "DF index name must be int, str, float"
+            assert name is None or type(name) in (
+                int,
+                float,
+                str,
+            ), "DF column name must be int, str, float"
+            assert index_name is None or type(index_name) in (
+                int,
+                float,
+                str,
+            ), "DF index name must be int, str, float"
             if name is None:
                 name = self._index_name
-            assert not name in self.columns, "DF index name must not overwrite an existing column"
-            self[self._index_name] = self.index # TODO SETITEM IS NOT FULLY IMPLEMENTED
+            assert (
+                not name in self.columns
+            ), "DF index name must not overwrite an existing column"
+            self[self._index_name] = self.index  # TODO SETITEM IS NOT FULLY IMPLEMENTED
 
         # set actual index values
         self["index"] = list(range(self._nrow))
@@ -420,7 +429,7 @@ class _DuffelDataFrame:
 
         # edit columns
         self.columns = (*self.columns, index_name)
-        self._rep_index = {k: v for v,k in enumerate(self.columns)}
+        self._rep_index = {k: v for v, k in enumerate(self.columns)}
 
         # finish up
         self.shape = (self._nrow, len(self.columns))
@@ -565,36 +574,40 @@ class _DuffelDataFrame:
     # special methods
     #####################################################################################
 
-    def __setitem__(self, col, values ):
+    def __setitem__(self, col, values):
         """create a column"""
         # check if col in columns
         if col in self.columns:
             col_index = self._rep_columns[col]
         else:
             col_index = len(self.columns)
-        
+
         # check data
         if isinstance(values, Iterable):
             # vector
             l = len(values)
-            assert l==self._nrow, f'DF column values must match DF len; DF len {self._nrow}, values {l}'
+            assert (
+                l == self._nrow
+            ), f"DF column values must match DF len; DF len {self._nrow}, values {l}"
         else:
             # scalar
             values = [values for x in range(self._nrow)]
-        
+
         # edit data
-        self.values = [ [*x[:col_index],v,*x[col_index:]] for x,v in zip(self.values, values)]
-        
+        self.values = [
+            [*x[:col_index], v, *x[col_index:]] for x, v in zip(self.values, values)
+        ]
+
         # edit columns
         cols = list(self.columns)
-        if col_index==len(cols):
+        if col_index == len(cols):
             # new column
             cols.append(col)
         else:
             # edit current column
             cols[col_index] = col
         self.columns = tuple(cols)
-        self._rep_columns = {k:v for v,k in enumerate(self.columns)}
+        self._rep_columns = {k: v for v, k in enumerate(self.columns)}
 
         # shape
         self.shape = (self._nrow, len(self.columns))
