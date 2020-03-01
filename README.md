@@ -165,7 +165,7 @@ pd.crosstab
 pd.cut
 pd.qcut
 ~~pd.read_csv~~
-pd.read_json
+~~pd.read_json~~
 pd.read_sql
 pd.to_datetime
 pd.to_timedelta

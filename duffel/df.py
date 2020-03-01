@@ -626,6 +626,9 @@ class _DuffelDataFrame:
     def sample(self, n, seed=None, columns=None):
         pass
 
+    def from_dict(self, data, orient: str = 'dict', columns: Optional[Iterable] = None):
+        pass
+    
     def to_csv(self, filename, index=False):
         """
         writes values to CSV located at filename
