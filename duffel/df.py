@@ -12,7 +12,9 @@ from .loc import _Loc, _ILoc
 
 
 class _DuffelDataFrame:
-    def __init__(self, values, columns=None, index=None, copy=True, **kwargs):
+    def __init__(self, values, columns=None, index=None, **kwargs):
+        # ingest an existing dataframe
+
         if columns is not None:
             self.columns = tuple(list(columns))  # throws error if columns not iterator
         else:
@@ -309,13 +311,14 @@ class _DuffelDataFrame:
         """
         create a dataframe from another Dataframe (i.e. no copy)
         """
-        _index_name = df._index_name
+        if hasattr(df, "_index_name"):
+            _index_name = df._index_name
 
         # this includes the columns and index
-        out = cls(df.to_dict())
-        out._index_name = _index_name
+        copy = cls(df.to_dict(), _index_name=_index_name)
 
-        return out
+        # finish up
+        return copy
 
     def _set_index(self, data: List, name=None):
         """
@@ -567,11 +570,29 @@ class _DuffelDataFrame:
     def to_sql(self, con):
         pass
 
-    def to_dict(self):
+    def to_dict(self, orient: str = 'dict'):
         """
         return self.data and index in dict form: {<index> : { field:value, ...}, ... }
         """
-        return {i: self.values[self._rep_index[i]] for i in self.index}
+        assert orient in {'dict','records','index','split','series','list'}, f"DF.to_dict orient must be in ('dict','records','index','split','series', 'list'), not {orient}"
+        if orient=='dict':
+            return {
+                col: {
+                    i: val
+                    for i, val in zip(self.index, [ x[self._rep_columns[col]] for x in self.values])
+                }
+                for col in self.columns
+            }
+        elif orient=='records':
+            return [{col:v for col,v in zip(self.columns, x)} for x in self.values]
+        elif orient=='split':
+            return {'index':self.index, 'columns':list(self.columns), 'data':self.values}
+        elif orient=='index':
+            return {i:{col:row[ self._rep_columns[col] ] for col in self.columns} for i,row in zip(self.index, self.values)}
+        elif orient=='series':
+            return {col:self.loc[:,col] for col in self.columns}
+        elif orient=='list':
+            return {col:[x[self._rep_columns[col]] for x in self.values] for col in self.columns}
 
     def head(self, n=6):
         return self._subset_loc(slice(0, n, None), None)
