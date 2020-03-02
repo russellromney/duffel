@@ -553,7 +553,7 @@ class _DuffelDataFrame:
 
     def idxmax(self, column=None):
         """
-        returns the index of the max value of a column or indexd
+        returns the index of the max value of a column or index
 
         takes in column str - must be a column value
         if column is None, returns maximum value of index
@@ -574,10 +574,29 @@ class _DuffelDataFrame:
 
         return _max[0]
 
-        
-
     def idxmin(self, column=None):
-        pass
+        """
+        returns the index of the min value of a column or index
+
+        takes in column str - must be a column value
+        if column is None, returns minimum value of index
+        if multiple occurences, returns index of first occurrence
+        """
+        if column is not None:
+            assert isinstance(column, (str, int, float)) and column in self.columns, f"DF idxmin column must be str/float/int in columns, invalid: {column}"
+
+            vals = [x[ self._rep_columns[column]] for x in self.values]
+        else:
+            # get the vals
+            vals = self.index
+
+        vals = [(i,x) for i,x in zip(self.index,vals) if x is not None]
+        
+        # get the max val and first index occurence (safe max)
+        _min = min(vals, key = lambda x : x[1])
+
+        # finish
+        return _min[0]
 
     def dropna(self, columns=None):
         pass
