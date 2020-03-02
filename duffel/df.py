@@ -765,7 +765,9 @@ class _DuffelDataFrame:
                 replace, bool
             ), f"DF sample replace must be type bool; invalid: {type(replace)}"
 
-            assert replace <= self._nrow, f"DF sample n must be <= number of rows if replace=False"
+            assert (
+                replace <= self._nrow
+            ), f"DF sample n must be <= number of rows if replace=False"
 
         # random_state - seed if wanted
         if random_state is not None:
@@ -799,7 +801,7 @@ class _DuffelDataFrame:
             done = self._row(index_vals[0], columns=columns)
 
         # elif explicitly a single column, but not explicitly a single row
-        if ndim(og_cols) == 0 and not og_cols==None:
+        if ndim(og_cols) == 0 and not og_cols == None:
             col = columns[0]
             done = _DuffelCol(
                 [
