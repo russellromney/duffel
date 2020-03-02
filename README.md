@@ -115,7 +115,7 @@ Implement a significant subset of the "minimally sufficient" Pandas API as laid 
 - rename
 - replace
 - ~~reset_index~~
-- sample
+- ~~sample~~
 - select_dtypes
 - shift
 - ~~sort_index~~
@@ -130,8 +130,8 @@ Implement a significant subset of the "minimally sufficient" Pandas API as laid 
 - any
 - count
 - describe
-- idxmax
-- idxmin
+- ~~idxmax~~
+- ~~idxmin~~
 - max
 - mean
 - median
