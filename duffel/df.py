@@ -921,7 +921,7 @@ class _DuffelDataFrame:
 
     def tail(self, n=5):
         """returns .loc of last 5 rows"""
-        return self._subset_loc(slice(0, n, None), None)
+        return self._subset_loc(slice(-n, None, None), None)
 
     #####################################################################################
     # special methods
