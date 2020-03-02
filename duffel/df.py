@@ -723,6 +723,7 @@ class _DuffelDataFrame:
         # args to pass to random
         args = {}
 
+        ## prepare args and check parameters
         # n OR frac - if neither, n=1
         if n is not None:
             assert isinstance(n, int), f"DF sample n must be int; invalid: {n}"
