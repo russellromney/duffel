@@ -668,8 +668,160 @@ class _DuffelDataFrame:
     def isin(self, value):
         pass
 
-    def sample(self, n, seed=None, columns=None):
-        pass
+    def sample(
+        self,
+        n: int = None,
+        frac: float = None,
+        random_state: int = None,
+        columns: Iterable = None,
+        replace: bool = False,
+        weights: Iterable = None,
+    ):
+        """
+        return a random subset of the dataframe by index
+
+        selecting number
+            n, int is number of items, default = 1
+            OR
+            frac: float, default=None
+                0 < frac < 1
+                computes number of values with integer division
+
+            
+            default is n=1
+            if both are specified, ignore frac and use n
+
+        random_state: int, default=None
+            random start seed to pass to random module
+        
+        columns: str or iterable, default=None
+            return data from one or more columns
+            if 1, returns Col
+            if multiple, returns DataFrame
+            if None, returns all columns
+        
+        replace: bool, default=False
+            allow sampling from entire distiribution every time?
+            if True:
+                index WILL NOT be maintained
+                uses random.choices
+            if False:
+                maintains index
+                uses random.sample
+        
+        weights: iterable of weight int/float, default=None
+            only used if replace=True (i.e. sampling with replacement i.e. random.choices)
+
+        returns:
+            DataFrame
+            OR
+            Series
+        """
+        # track original columns
+        og_cols = columns
+
+        # args to pass to random
+        args = {}
+
+        # n OR frac - if neither, n=1
+        if n is not None:
+            assert isinstance(n, int), f"DF sample n must be int; invalid: {n}"
+            args["n"] = n
+        elif frac is not None:
+            assert isinstance(
+                frac, float
+            ), f"DF sample frac must be float such that 0 < frac < 1; invalid: {frac}"
+            args["frac"] = frac
+        else:
+            args["n"] = 1
+
+        # columns
+        if columns is not None:
+            assert isinstance(
+                columns, (str, Iterable)
+            ), f"DF sample columns must be str or iterable; invalid type: {type(columns)}"
+            if ndim(columns) == 0:
+                columns = [columns]
+
+            for col in columns:
+                assert (
+                    col in self.columns
+                ), f"DF sample columns must be in DF columns; invalid: {col}"
+        else:
+            columns = self.columns
+
+        # weights
+        if weights is not None:
+            assert isinstance(weights, Iterable) and sum(
+                [type(x) in (int, float) for x in weights]
+            ) == len(weights), f"DF sample weights must be iterable of floats/ints"
+            assert (
+                len(weights) == self._nrow
+            ), f"DF sample weights must match number of rows; rows: {self._nrow} weights: {len(weights)}"
+
+        # replace
+        if replace is not None:
+            assert isinstance(
+                replace, bool
+            ), f"DF sample replace must be type bool; invalid: {type(replace)}"
+
+            assert replace <= self._nrow, f"DF sample n must be <= number of rows if replace=False"
+
+        # random_state - seed if wanted
+        if random_state is not None:
+            assert isinstance(
+                random_state, int
+            ), f"DF sample random_state must be integer; invalid: {random_state}"
+            random.seed(random_state)
+
+        if "frac" in args:
+            sample_n = round(self._nrow * frac)
+        else:
+            sample_n = args["n"]
+
+        # random index vals
+        if not replace:
+            # without replacement
+            index_vals = random.sample(self.index, sample_n)
+        else:
+            # with replacement
+            index_vals = random.choices(self.index, k=sample_n, weights=weights)
+
+        # prepare index; only use the index_vals if sampling with replacement
+        if replace:
+            index = None
+        else:
+            index = index_vals
+
+        ### get the sample values and return
+        # if explicitly a single sample value, return a row
+        if n is None and frac is None:
+            done = self._row(index_vals[0], columns=columns)
+
+        # elif explicitly a single column, but not explicitly a single row
+        if ndim(og_cols) == 0 and not og_cols==None:
+            col = columns[0]
+            done = _DuffelCol(
+                [
+                    x[self._rep_columns[col]]
+                    for x in [self.values[ix] for ix in index_vals]
+                ],
+                name=col,
+                index=index,
+            )
+
+        # explicitly multiple values and columns
+        else:
+            done = _DuffelDataFrame(
+                [
+                    [x[self._rep_columns[col]] for col in columns]
+                    for x in [self.values[self._rep_index[ix]] for ix in index_vals]
+                ],
+                columns=columns,
+                index=index,
+            )
+
+        return done
 
     def from_dict(self, data, orient: str = "dict", columns: Optional[Iterable] = None):
         pass
