@@ -552,7 +552,29 @@ class _DuffelDataFrame:
         pass
 
     def idxmax(self, column=None):
-        pass
+        """
+        returns the index of the max value of a column or indexd
+
+        takes in column str - must be a column value
+        if column is None, returns maximum value of index
+        if multiple occurences, returns index of first occurrence
+        """
+        if column is not None:
+            assert isinstance(column, (str, int, float)) and column in self.columns, f"DF idxmax column must be str/float/int in columns, invalid: {column}"
+
+            vals = [x[ self._rep_columns[column]] for x in self.values]
+        else:
+            # get the vals
+            vals = self.index
+
+        vals = [(i,x) for i,x in zip(self.index,vals) if x is not None]
+        
+        # get the max val and first index occurence (safe max)
+        _max = max(vals, key = lambda x : x[1])
+
+        return _max[0]
+
+        
 
     def idxmin(self, column=None):
         pass
