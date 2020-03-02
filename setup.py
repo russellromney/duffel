@@ -3,12 +3,12 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'duffel',
-    version = '0.1.1',
+    version = '0.1.3',
     description = 'Lightweight Python data frames on the standard library',
     long_description = 'Lightweight Python data frames without bloat or typecasting, using only the standard library.',
     keywords = 'pandas numpy python dflite data.frame dataframe data lambda aws',
     url = 'https://github.com/russellromney/duffel',
-    download_url = 'https://github.com/russellromney/duffel/archive/v0.1.1.tar.gz',
+    download_url = 'https://github.com/russellromney/duffel/archive/v0.1.3.tar.gz',
     author = 'Russell Romney',
     author_email = 'russellromney@gmail.com',
     license = 'MIT',
