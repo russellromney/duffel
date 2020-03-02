@@ -560,17 +560,19 @@ class _DuffelDataFrame:
         if multiple occurences, returns index of first occurrence
         """
         if column is not None:
-            assert isinstance(column, (str, int, float)) and column in self.columns, f"DF idxmax column must be str/float/int in columns, invalid: {column}"
+            assert (
+                isinstance(column, (str, int, float)) and column in self.columns
+            ), f"DF idxmax column must be str/float/int in columns, invalid: {column}"
 
-            vals = [x[ self._rep_columns[column]] for x in self.values]
+            vals = [x[self._rep_columns[column]] for x in self.values]
         else:
             # get the vals
             vals = self.index
 
-        vals = [(i,x) for i,x in zip(self.index,vals) if x is not None]
-        
+        vals = [(i, x) for i, x in zip(self.index, vals) if x is not None]
+
         # get the max val and first index occurence (safe max)
-        _max = max(vals, key = lambda x : x[1])
+        _max = max(vals, key=lambda x: x[1])
 
         return _max[0]
 
@@ -583,17 +585,19 @@ class _DuffelDataFrame:
         if multiple occurences, returns index of first occurrence
         """
         if column is not None:
-            assert isinstance(column, (str, int, float)) and column in self.columns, f"DF idxmin column must be str/float/int in columns, invalid: {column}"
+            assert (
+                isinstance(column, (str, int, float)) and column in self.columns
+            ), f"DF idxmin column must be str/float/int in columns, invalid: {column}"
 
-            vals = [x[ self._rep_columns[column]] for x in self.values]
+            vals = [x[self._rep_columns[column]] for x in self.values]
         else:
             # get the vals
             vals = self.index
 
-        vals = [(i,x) for i,x in zip(self.index,vals) if x is not None]
-        
+        vals = [(i, x) for i, x in zip(self.index, vals) if x is not None]
+
         # get the max val and first index occurence (safe max)
-        _min = min(vals, key = lambda x : x[1])
+        _min = min(vals, key=lambda x: x[1])
 
         # finish
         return _min[0]
