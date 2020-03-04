@@ -884,6 +884,7 @@ class _DuffelDataFrame:
             "series",
             "list",
         }, f"DF.to_dict orient must be in ('dict','records','index','split','series', 'list'), not {orient}"
+     
         if orient == "dict":
             return {
                 col: {
@@ -894,21 +895,26 @@ class _DuffelDataFrame:
                 }
                 for col in self.columns
             }
+    
         elif orient == "records":
             return [{col: v for col, v in zip(self.columns, x)} for x in self.values]
+        
         elif orient == "split":
             return {
                 "index": self.index,
                 "columns": list(self.columns),
                 "data": self.values,
             }
+        
         elif orient == "index":
             return {
                 i: {col: row[self._rep_columns[col]] for col in self.columns}
                 for i, row in zip(self.index, self.values)
             }
+     
         elif orient == "series":
             return {col: self.loc[:, col] for col in self.columns}
+     
         elif orient == "list":
             return {
                 col: [x[self._rep_columns[col]] for x in self.values]
@@ -966,13 +972,19 @@ class _DuffelDataFrame:
         self._get_nrow()
         self._get_shape()
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: str):
         """2D indexing on the data with slices and integers"""
-        # grab _DuffelCol by column name
+        assert isinstance(index, (str, int, float, Iterable)), "DF indexing must be a column name or a list of bool"
+        
+        # grab Col by column name
         if ndim(index) == 0:
-            return self._col(index)
+            assert isinstance(index, (str, int, float)) and index in self.columns, f"DF indexing must be a column name; invalid: {index}"
+            return self.loc[:, index ]
+        
+        # grab DataFrame by indecx
         elif isinstance(index, slice) or isinstance(index, Iterable):
-            return self.loc[:, index]
+            return self.loc[index,:]
+        
         else:
             raise ValueError("Not sure how to pull that column")
         # # return column(s)
@@ -1047,7 +1059,9 @@ class _DuffelDataFrame:
         return html
 
     def __repr__(self):
-        strcols = [self._index_name, " --"] + [(" " + str(i)) for i in self.index[:10]]
+        if self._index_name == 'index':
+            index_name = ' '
+        strcols = [index_name , " --"] + [(" " + str(i)) for i in self.index[:10]]
         strcols = [strcols] + [
             [str(col), "----"]
             + [
