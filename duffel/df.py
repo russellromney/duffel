@@ -1085,20 +1085,23 @@ class _DuffelDataFrame(object):
         i = 0
         for row in zip(*strcols):
             if i > 10:
-                rows.append(
-                    "".join(
+                newrow = "".join(
                         "..." + " " * (nchars[j] - len("...")) for j in range(len(row))
                     )
-                )
+                if len(newrow)>100:
+                    newrow =  newrow[:100] + ' ...'
+                rows.append(newrow)
                 break
             row = list(row)
-            rows.append(
-                "".join(
-                    row[j] + " " * (nchars[j] - len(row[j])) for j in range(len(row))
-                )
+            newrow = "".join(
+                row[j] + " " * (nchars[j] - len(row[j])) for j in range(len(row))
             )
+            if len(newrow)>100:
+                newrow = newrow[:100] + ' ...'
+            rows.append(newrow)
             i += 1
         rows.append(" ".join(["duffel.DataFrame", str(self.shape)]))
+
 
         return "\n" + "\n".join(rows) + "\n"
 
