@@ -83,6 +83,9 @@ Implement a significant subset of the "minimally sufficient" Pandas API as laid 
 - ~~iloc~~
 - ~~loc~~
 - ~~tail~~
+- ~~scalar comparison~~
+- ~~vector comparison~~
+- ~~getitem selection~~
 
 **Missing Value Handling**
 - dropna
