@@ -12,7 +12,7 @@ from .loc import _Loc, _ILoc
 from . import base_utils
 
 
-class _DuffelDataFrame:
+class _DuffelDataFrame(object):
     def __init__(self, values, columns=None, index=None, **kwargs):
         # ingest an existing dataframe
 
@@ -467,6 +467,7 @@ class _DuffelDataFrame:
         self._get_shape()
         return self
 
+    # @property()
     def transpose(self):
         # transpose values
         self.values = list(map(list, zip(*self.values)))
@@ -479,7 +480,13 @@ class _DuffelDataFrame:
 
         # finish up
         self._get_rep_index()
+        self._get_rep_columns()
+        self._get_nrow()
+        self._get_shape()
         return self
+
+    def T(self):
+        return self.transpose()
 
     def append(self, values: Iterable, index):
         """
@@ -1061,6 +1068,8 @@ class _DuffelDataFrame:
     def __repr__(self):
         if self._index_name == 'index':
             index_name = ' '
+        else:
+            index_name = self._index_name
         strcols = [index_name , " --"] + [(" " + str(i)) for i in self.index[:10]]
         strcols = [strcols] + [
             [str(col), "----"]
