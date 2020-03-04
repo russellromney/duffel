@@ -172,6 +172,18 @@ class _DuffelCol(object):
     def __len__(self):
         return self._nrow
 
+    def __eq__(self, eq):
+        """
+        item-wise equality of eq to each item in values
+        """
+        return [x==eq for x in self.values]
+
+    def __ne__(self, eq):
+        """
+        item-wise equality of eq to each item in values
+        """
+        return [x!=eq for x in self.values]
+
     def __iter__(self):
         return self.values.__iter__()
 
