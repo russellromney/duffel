@@ -176,13 +176,24 @@ class _DuffelCol(object):
         """
         item-wise equality of eq to each item in values
         """
-        return [x==eq for x in self.values]
+        if ndim(eq)==0:
+            return [x==eq for x in self.values]
+        
+        elif isinstance(eq, Iterable):
+            assert len(eq)==self._nrow, f"Col vector comparison lengths must match; dataframe has {self._nrow}, comparison has {len(eq)}"
+            return [x==y for x,y in zip(self.values, eq)]
 
     def __ne__(self, eq):
         """
-        item-wise equality of eq to each item in values
+        item-wise comparison of eq to each item in values
         """
-        return [x!=eq for x in self.values]
+        if ndim(eq)==0:
+            return [x!=eq for x in self.values]
+        
+        elif isinstance(eq, Iterable):
+            assert len(eq)==self._nrow, f"Col vector comparison lengths must match; dataframe has {self._nrow}, comparison has {len(eq)}"
+            return [x!=y for x,y in zip(self.values, eq)]
+
 
     def __iter__(self):
         return self.values.__iter__()
