@@ -178,5 +178,16 @@ def _read_json(path_or_buf, orient: str = "dict", typ: str = "frame"):
         return typ_d[typ](json.load(open(path_or_buf)))
 
 
-def read_sql(q, con):
+def _read_sql(statement, con):
+    '''
+    accepts a query and connection
+    gets the response in records form (dict of col:vals)
+    passes output dadta to a DataFrame and return it
+
+    uses three connection types:
+        - basic connector with a cursor that has a cursor.execute method, to which the statement is passeed and outputs cast to list-like
+        - sqlalchemy engine: a context manager; tests for __enter__ method; uses a begin statement to return and cast to list-like
+        -
+    then casts output to list-like and attempts to ingest that list-like
+    '''
     pass

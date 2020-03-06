@@ -485,6 +485,7 @@ class _DuffelDataFrame(object):
         self._get_shape()
         return self
 
+    @property
     def T(self):
         return self.transpose()
 
@@ -524,9 +525,6 @@ class _DuffelDataFrame(object):
 
         # add value
         self.values.append(values)
-
-    def T(self):
-        return self.transpose()
 
     def max(self, column=None):
         pass
