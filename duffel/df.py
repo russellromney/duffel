@@ -1,4 +1,4 @@
-from typing import Iterable, Mapping, Optional, List
+from typing import Iterable, Mapping, Optional, List, Sequence
 from functools import reduce
 from collections import Counter
 import random
@@ -62,16 +62,15 @@ class _DuffelDataFrame(object):
         # deal with columns
         if self.columns is not None:
             columns = self.columns
-            assert isinstance(columns, Iterable), "DF columns must be an iterable"
-            assert len(columns) == len(
-                set(columns)
-            ), f"DF columns values must be unique - duplicates are {[item for item, count in Counter(columns).items() if count > 1]}"
-            assert len(columns) == len(
-                self.values[0]
-            ), f"DF columns length ({len(columns)}) must match length of values ({len(values[0])})"
+            if not isinstance(columns, Iterable):
+                raise ValueError("DF columns must be an iterable")
+            if not len(columns) == len(set(columns)):
+                raise ValueError(f"DF columns values must be unique - duplicates are {[item for item, count in Counter(columns).items() if count > 1]}")
+            if not len(columns) == len(self.values[0]):
+                raise ValueError(f"DF columns length ({len(columns)}) must match length of values ({len(values[0])})")
             self.columns = tuple(columns)
         else:
-            self.columns = tuple([x for x in range(len(self.values))])
+            self.columns = tuple([x for x in range(len(self.values[0]))])
 
         # create enumerated internal representation of index and columns
         self._get_rep_index()
@@ -127,6 +126,9 @@ class _DuffelDataFrame(object):
     def _ingest_mapping(self, values, columns=None, index=None):
         """
         ingest maps of iterables
+        e.g. {
+            'this':[1,2,3,4]
+        }
         
         TODO: need to standardize the mapping ingest based on the orient types
             a) detect orientation or take as argument
@@ -831,8 +833,119 @@ class _DuffelDataFrame(object):
 
         return done
 
-    def from_dict(self, data, orient: str = "dict", columns: Optional[Iterable] = None):
+    @classmethod
+    def from_records(cls, data: List, index: List=None, exclude: Sequence=None, columns: Sequence=None):
+        """
+        ingest iterable of structured data
+        knows how to process:
+            list of lists/tuples, e.g. [[1,2,2], ]
+            list of dict e.g. [{'a':1,'b':2}, ]
+            dict of dicts e.g. {'this':{'a':1,'b':2}, }} - first key is columns, second is index
+            DataFrame
+            DuffelDataFrame
+        """
         pass
+    
+    @classmethod
+    def from_dict(cls, data: dict, orient: str="columns", columns: Optional[Iterable]=None, index: Optional[Iterable]=None, *args, **kwargs):
+        """
+        ingest maps of iterables
+        e.g. 
+            {'this':[1,2,3,4], ...}
+                orient=columns, keys are columns
+                orient=index, keys are index
+            {'this':{'a':1,'b':2},...}
+                orient=columns, keys are columns, subkeys are row indexes
+                orient=index, keys are index, subkeys are columns
+        
+        args:
+            data, dict
+                map of iterables
+            orient, str, ('columns', 'index')
+                'columns' (default), keys are column names
+                'index', keys are row indexes
+            columns, iterable
+                ValueError if used with orient='columns'
+
+        """
+        # ORIENT MUST BE GOOD
+        if orient not in ['columns','index']:
+            raise ValueError(f'DataFrame.from_dict Error: orient must be one of "columns","index", not "{str(orient)}"')
+        # PANDAS RAISES ValueError FOR THIS, SO WE DO TOO
+        if orient=='columns' and not columns is None:
+            raise ValueError('DuffelDataFrame.from_dict: Cannot use parameter "columns" with arg orient="index"')
+            
+        # LOGIC TO DETERMINE IF STRUCTURE IS MAP OF MAPS OR LISTS
+        if isinstance(data, Mapping):
+            for val in data.values():
+                if isinstance(val, Mapping):
+                    substructure = 'map'
+                elif isinstance(val, Iterable):
+                    substructure = 'list'
+                else:
+                    # SCALAR VALUE
+                    # TODO: this should not error out
+                    raise ValueError(f"DataFrame.from_dict: values must be arrays or maps")
+        # BAD DATA STRUCTURE
+        else:
+            raise ValueError(f"DataFrame.from_dict: data must be dict, not {type(data)}")
+
+        # DATA IS MAP OF LISTS
+        if substructure == 'list':
+            if orient=="columns":
+                # MAKE SURE COLUMNS ARE SAME LENGTH
+                for col in data:
+                    len_first_col = len(data[col])
+                    break
+
+                if not all([len(data[col])==len_first_col for col in data]):
+                    raise ValueError('DataFrame.from_dict Error: arrays must all be same length')
+
+                if columns:
+                    cols = columns
+                else:
+                    cols = list(data.keys())
+                if index:
+                    ix = index
+                else:
+                    ix = None
+                data = [list(x) for x in zip(*data.values())]
+            elif orient=='index':
+                ix = list(data.keys())
+                data = list(data.values())
+                first_row_len = len(data[0])
+                if not all([len(x) == first_row_len for x in data]):
+                    raise ValueError('DataFrame.from_dict Error: arrays must all be same length')
+                cols = columns or list(range(len(data[0])))
+        
+        # DATA IS MAP OF MAPS
+        elif substructure == 'map':
+            # VALIDATE VALUE TYPES
+            if not all([isinstance(data[key],dict) for key in data]):
+                raise ValueError('DataFrame.from_dict Error: all values must be dicts')
+            keys = list(data.keys())
+            subkeys = list(set([x for y in data.values() for x in y]))
+            keys.sort()
+            subkeys.sort()
+            
+            if orient=='columns':
+                cols = keys
+                ix = subkeys
+                # TRANSFORM TO LISTS OF LISTS (EACH LIST IS THE COLUMN'S VALUES)
+                data = [[x.get(index) for index in ix] for x in data.values()]
+                # TRANSFORM TO LISTS OF LISTS (EACH LIST IS A ROW'S VALUES)
+                data = [[x[i] for x in data] for i in range(len(data[0]))]
+
+            elif orient=='index':
+                cols = subkeys
+                ix = keys
+                # TRANSFORM TO LISTS OF LISTS (EACH LIST IS A ROW'S VALUES)
+                data = [[x.get(col) for col in cols] for x in data.values()]
+            
+            else:
+                raise ValueError(f'DataFrame.from_dict Error: orient must be one of "columns","index", not "{str(orient)}"')
+
+        return cls(data,columns=cols,index=ix)            
 
     def to_csv(self, filename, index=False):
         """
@@ -889,7 +1002,7 @@ class _DuffelDataFrame(object):
             "series",
             "list",
         }, f"DF.to_dict orient must be in ('dict','records','index','split','series', 'list'), not {orient}"
-     
+
         if orient == "dict":
             return {
                 col: {
@@ -900,26 +1013,26 @@ class _DuffelDataFrame(object):
                 }
                 for col in self.columns
             }
-    
+
         elif orient == "records":
             return [{col: v for col, v in zip(self.columns, x)} for x in self.values]
-        
+
         elif orient == "split":
             return {
                 "index": self.index,
                 "columns": list(self.columns),
                 "data": self.values,
             }
-        
+
         elif orient == "index":
             return {
                 i: {col: row[self._rep_columns[col]] for col in self.columns}
                 for i, row in zip(self.index, self.values)
             }
-     
+
         elif orient == "series":
             return {col: self.loc[:, col] for col in self.columns}
-     
+
         elif orient == "list":
             return {
                 col: [x[self._rep_columns[col]] for x in self.values]
@@ -979,17 +1092,21 @@ class _DuffelDataFrame(object):
 
     def __getitem__(self, index: str):
         """2D indexing on the data with slices and integers"""
-        assert isinstance(index, (str, int, float, Iterable)), "DF indexing must be a column name or a list of bool"
-        
+        assert isinstance(
+            index, (str, int, float, Iterable)
+        ), "DF indexing must be a column name or a list of bool"
+
         # grab Col by column name
         if ndim(index) == 0:
-            assert isinstance(index, (str, int, float)) and index in self.columns, f"DF indexing must be a column name; invalid: {index}"
-            return self.loc[:, index ]
-        
+            assert (
+                isinstance(index, (str, int, float)) and index in self.columns
+            ), f"DF indexing must be a column name; invalid: {index}"
+            return self.loc[:, index]
+
         # grab DataFrame by indecx
         elif isinstance(index, slice) or isinstance(index, Iterable):
-            return self.loc[index,:]
-        
+            return self.loc[index, :]
+
         else:
             raise ValueError("Not sure how to pull that column")
         # # return column(s)
@@ -1046,29 +1163,29 @@ class _DuffelDataFrame(object):
         #     ), "Boolean selection iterable must only contain bool values"
         #     return [x for truth, x in zip(index, self.values) if truth]
 
-    def _repr_html_(self):
-        """
-        Jupyter Notebook magic repr function.
-        """
-        head = "<tr><td></td>%s</tr>\n" % "".join(
-            ["<td><strong>%s</strong></td>" % c for c in self.columns]
-        )
-        rows = [
-            "<td><strong>%d</strong></td>" % i
-            + "".join(["<td>%s</td>" % c for c in row])
-            for i, row in self.iterrows()
-        ]
-        html = "<table>{}</table>".format(
-            head + "\n".join(["<tr>%s</tr>" % row for row in rows])
-        )
-        return html
+    # def _repr_html_(self):
+    #     """
+    #     Jupyter Notebook magic repr function.
+    #     """
+    #     head = "<tr><td></td>%s</tr>\n" % "".join(
+    #         ["<td><strong>%s</strong></td>" % c for c in self.columns]
+    #     )
+    #     rows = [
+    #         "<td><strong>%d</strong></td>" % i
+    #         + "".join(["<td>%s</td>" % c for c in row])
+    #         for i, row in self.iterrows()
+    #     ]
+    #     html = "<table>{}</table>".format(
+    #         head + "\n".join(["<tr>%s</tr>" % row for row in rows])
+    #     )
+    #     return html
 
     def __repr__(self):
-        if self._index_name == 'index':
-            index_name = ' '
+        if self._index_name == "index":
+            index_name = " "
         else:
             index_name = self._index_name
-        strcols = [index_name , " --"] + [(" " + str(i)) for i in self.index[:10]]
+        strcols = [index_name, " --"] + [(" " + str(i)) for i in self.index[:10]]
         strcols = [strcols] + [
             [str(col), "----"]
             + [
@@ -1084,22 +1201,21 @@ class _DuffelDataFrame(object):
         for row in zip(*strcols):
             if i > 10:
                 newrow = "".join(
-                        "..." + " " * (nchars[j] - len("...")) for j in range(len(row))
-                    )
-                if len(newrow)>100:
-                    newrow =  newrow[:100] + ' ...'
+                    "..." + " " * (nchars[j] - len("...")) for j in range(len(row))
+                )
+                if len(newrow) > 100:
+                    newrow = newrow[:100] + " ..."
                 rows.append(newrow)
                 break
             row = list(row)
             newrow = "".join(
                 row[j] + " " * (nchars[j] - len(row[j])) for j in range(len(row))
             )
-            if len(newrow)>100:
-                newrow = newrow[:100] + ' ...'
+            if len(newrow) > 100:
+                newrow = newrow[:100] + " ..."
             rows.append(newrow)
             i += 1
         rows.append(" ".join(["duffel.DataFrame", str(self.shape)]))
-
 
         return "\n" + "\n".join(rows) + "\n"
 
