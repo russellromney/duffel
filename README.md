@@ -1,5 +1,5 @@
 # duffel
-Lightweight Python data frames without bloat or typecasting, using only the standard library.
+Lightweight Python dataframes without bloat or typecasting, using only the standard library.
 
 Take your data with you to the cloud without the bloat of a 200kg full-grown bear that refuses to mate.
 
